@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 AI分析 - スキル・思考構造可視化</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #20b2aa;
+            --primary-dark: #16a085;
+            --secondary: #48d1cc;
+            --accent: #06d6a0;
+            --accent-dark: #05b08a;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #16213e;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --bg-glass: rgba(255, 255, 255, 0.1);
+            
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            
+            --border: rgba(255, 255, 255, 0.1);
+            --border-focus: rgba(32, 178, 170, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(32, 178, 170, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(72, 209, 204, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(6, 214, 160, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-brand i {
+            font-size: 1.8rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            background: rgba(32, 178, 170, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            background: rgba(32, 178, 170, 0.2);
+            box-shadow: 0 0 20px rgba(32, 178, 170, 0.3);
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .username-display {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 80px auto 0;
+            padding: 2rem;
+        }
+        .main-title {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .main-title h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #20b2aa, #48d1cc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .main-title p {
+            color: #cbd5e1;
+            font-size: 1.1rem;
+        }
+        .analysis-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .analysis-section:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #20b2aa;
+            transform: translateY(-2px);
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .section-title {
+            font-size: 1.5rem;
+            color: #20b2aa;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status-indicator {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .status-success {
+            color: var(--text-secondary);
+            border-left: 3px solid #10b981;
+        }
+        .status-warning {
+            color: var(--text-secondary);
+            border-left: 3px solid #f59e0b;
+        }
+        .status-error {
+            color: var(--text-secondary);
+            border-left: 3px solid #ef4444;
+        }
+        .status-info {
+            color: var(--text-secondary);
+            border-left: 3px solid #20b2aa;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .data-table th {
+            background: rgba(255, 255, 255, 0.05);
+            color: #20b2aa;
+            font-weight: 600;
+        }
+        .data-table tr:hover {
+            background: rgba(32, 178, 170, 0.1);
+        }
+        .skill-level {
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .level-beginner { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .level-intermediate { background: rgba(32, 178, 170, 0.15); color: #20b2aa; }
+        .level-advanced { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .level-expert { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+        .thinking-frequency {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .frequency-bar {
+            width: 100px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .frequency-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #20b2aa, #48d1cc);
+            transition: width 0.3s ease;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #cbd5e1;
+        }
+        .empty-state h3 {
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+            
+            .nav-menu {
+                gap: 0.5rem;
+            }
+            
+            .nav-link span {
+                display: none;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .main-title h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-robot"></i>
+                <span>RAGme</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">
+                    <i class="fas fa-home"></i>
+                    <span>ホーム</span>
+                </a>
+                <a href="memory.html" class="nav-link">
+                    <i class="fas fa-brain"></i>
+                    <span>メモリー</span>
+                </a>
+                <a href="analysis.html" class="nav-link active">
+                    <i class="fas fa-chart-line"></i>
+                    <span>AI分析</span>
+                </a>
+                <a href="settings.html" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    <span>設定</span>
+                </a>
+                <div class="user-info">
+                    <span class="username-display" id="usernameDisplay"></span>
+                    <button class="logout-btn" onclick="logoutUser()">
+                        <i class="fas fa-sign-out-alt"></i> ログアウト
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="main-title">
+            <h1><i class="fas fa-chart-line"></i> AI分析</h1>
+            <p>入力データからあなたのスキルと思考を可視化</p>
+        </div>
+
+        <!-- 分析実行セクション -->
+        <div class="analysis-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    🔍 AI分析実行
+                </h2>
+                <div class="action-buttons">
+                    <button class="btn" id="generateTestBtn">
+                        📄 テストデータ生成
+                    </button>
+                    <button class="btn" id="startAnalysisBtn">
+                        🤖 GPT-3.5分析開始
+                    </button>
+                </div>
+            </div>
+            
+            <div id="statusIndicator" class="status-indicator status-info">
+                📊 分析を開始するには、上のボタンをクリックしてください
+            </div>
+        </div>
+
+        <!-- スキル分析結果 -->
+        <div class="analysis-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    💡 スキル分析結果
+                </h2>
+            </div>
+            
+            <div id="skillsTableContainer">
+                <table class="data-table" id="skillsTable">
+                    <thead>
+                        <tr>
+                            <th>スキル名</th>
+                            <th>レベル</th>
+                            <th>カテゴリ</th>
+                            <th>説明</th>
+                            <th>頻度</th>
+                        </tr>
+                    </thead>
+                    <tbody id="skillsTableBody">
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <h3>📊 分析データがありません</h3>
+                                <p>AI分析を実行してスキル情報を表示します</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 思考軸分析結果 -->
+        <div class="analysis-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    🧠 思考軸分析結果
+                </h2>
+            </div>
+            
+            <div id="thinkingTableContainer">
+                <table class="data-table" id="thinkingTable">
+                    <thead>
+                        <tr>
+                            <th>思考軸名</th>
+                            <th>頻度</th>
+                            <th>割合</th>
+                            <th>行動例</th>
+                        </tr>
+                    </thead>
+                    <tbody id="thinkingTableBody">
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <h3>🧠 分析データがありません</h3>
+                                <p>AI分析を実行して思考軸情報を表示します</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 遅延認証チェック関数
+        function checkAuthenticationDelayed() {
+            const isAuthenticated = 
+                sessionStorage.getItem('authenticated') === 'true' || 
+                localStorage.getItem('authenticated') === 'true' ||
+                (window.userManager && window.userManager.isLoggedIn());
+
+            if (!isAuthenticated) {
+                console.log('🔒 Authentication failed, redirecting to login...');
+                window.location.href = 'index.html';
+                return false;
+            }
+            
+            console.log('✅ Authentication check passed');
+            return true;
+        }
+
+        // 即座の認証チェック（フォールバック）
+        (function() {
+            const isAuthenticated = 
+                sessionStorage.getItem('authenticated') === 'true' || 
+                localStorage.getItem('authenticated') === 'true';
+
+            if (!isAuthenticated) {
+                console.log('🔒 No authentication found, redirecting to login...');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            console.log('✅ Basic authentication check passed');
+        })();
+
+        // OpenAI APIキー（実際のキーに置き換えてください）
+        const OPENAI_API_KEY = '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';
+        
+        // グローバル変数
+        let currentUser = '';
+        let memoriesData = [];
+        let analysisData = null;
+        let isAnalyzing = false;
+
+        // DOM要素
+        const statusIndicator = document.getElementById('statusIndicator');
+        const generateTestBtn = document.getElementById('generateTestBtn');
+        const startAnalysisBtn = document.getElementById('startAnalysisBtn');
+        const skillsTableBody = document.getElementById('skillsTableBody');
+        const thinkingTableBody = document.getElementById('thinkingTableBody');
+
+        // ページ初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            loadExistingData();
+        });
+
+        // ページ初期化
+        function initializePage() {
+            // 認証チェックを先に実行
+            if (!checkAuthenticationDelayed()) {
+                return;
+            }
+
+            // ユーザー認証チェック
+            currentUser = localStorage.getItem('currentUser') || sessionStorage.getItem('username');
+            if (!currentUser && window.userManager) {
+                const user = window.userManager.getCurrentUser();
+                if (user) {
+                    currentUser = user.username;
+                }
+            }
+            
+            if (!currentUser) {
+                console.log('🔒 No user found, redirecting...');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // ユーザー名を表示
+            const usernameDisplay = document.getElementById('usernameDisplay');
+            if (usernameDisplay) {
+                usernameDisplay.textContent = currentUser;
+            }
+
+            // イベントリスナー設定
+            generateTestBtn.addEventListener('click', generateTestData);
+            startAnalysisBtn.addEventListener('click', startAnalysis);
+
+            updateStatus('info', '📊 分析準備完了。データを確認してください。');
+            console.log('✅ Page initialization complete');
+        }
+
+        // 既存データの読み込み
+        function loadExistingData() {
+            try {
+                // メモリーデータの読み込み
+                const savedMemories = localStorage.getItem('ragme_memories');
+                if (savedMemories) {
+                    memoriesData = JSON.parse(savedMemories);
+                    updateStatus('success', `📚 メモリーデータ ${memoriesData.length}件を読み込みました`);
+                } else {
+                    updateStatus('warning', '⚠️ メモリーデータが見つかりません。テストデータを生成してください。');
+                }
+
+                // 既存の分析結果の読み込み
+                const savedAnalysis = localStorage.getItem('analysis_data');
+                if (savedAnalysis) {
+                    analysisData = JSON.parse(savedAnalysis);
+                    displayAnalysisResults(analysisData);
+                    updateStatus('success', '✅ 保存済みの分析結果を表示しました');
+                }
+            } catch (error) {
+                console.error('データ読み込みエラー:', error);
+                updateStatus('error', '❌ データ読み込み中にエラーが発生しました');
+            }
+        }
+
+        // テストデータ生成
+        function generateTestData() {
+            const testMemories = [
+                {
+                    id: Date.now() + '-1',
+                    timestamp: new Date().toISOString(),
+                    content: 'Reactのコンポーネント設計について学習しました。Hooksを使った状態管理が理解できるようになってきています。',
+                    type: 'text',
+                    tags: ['プログラミング', '学習']
+                },
+                {
+                    id: Date.now() + '-2',
+                    timestamp: new Date().toISOString(),
+                    content: 'チームミーティングでプロジェクトの進捗を確認。タスクの優先順位を整理し、効率的な作業分担を決めました。',
+                    type: 'text',
+                    tags: ['マネジメント', '会議']
+                },
+                {
+                    id: Date.now() + '-3',
+                    timestamp: new Date().toISOString(),
+                    content: '英語のビジネス会話練習。プレゼンテーションで使える表現を覚えて実際に使ってみました。',
+                    type: 'text',
+                    tags: ['英語学習', 'プレゼン']
+                },
+                {
+                    id: Date.now() + '-4',
+                    timestamp: new Date().toISOString(),
+                    content: 'データベース設計の課題を解決。インデックスの最適化により処理速度が大幅に改善されました。',
+                    type: 'text',
+                    tags: ['データベース', '最適化']
+                },
+                {
+                    id: Date.now() + '-5',
+                    timestamp: new Date().toISOString(),
+                    content: '新しいマーケティング戦略について分析。顧客のニーズを深く理解する重要性を実感しました。',
+                    type: 'text',
+                    tags: ['マーケティング', '分析']
+                }
+            ];
+
+            try {
+                localStorage.setItem('ragme_memories', JSON.stringify(testMemories));
+                memoriesData = testMemories;
+                updateStatus('success', `✅ テストデータ ${testMemories.length}件を生成しました`);
+            } catch (error) {
+                console.error('テストデータ生成エラー:', error);
+                updateStatus('error', '❌ テストデータ生成に失敗しました');
+            }
+        }
+
+        // AI分析開始
+        async function startAnalysis() {
+            if (isAnalyzing) return;
+            
+            if (memoriesData.length === 0) {
+                updateStatus('warning', '⚠️ 分析するデータがありません。先にテストデータを生成してください。');
+                return;
+            }
+
+            isAnalyzing = true;
+            startAnalysisBtn.disabled = true;
+            startAnalysisBtn.innerHTML = '<div class="loading"><div class="spinner"></div>分析中...</div>';
+            
+            updateStatus('info', '🤖 AI分析を開始しています...');
+
+            try {
+                let result;
+                
+                if (OPENAI_API_KEY && OPENAI_API_KEY !== 'YOUR_API_KEY_HERE') {
+                    // GPT-3.5による分析
+                    result = await performGPTAnalysis();
+                } else {
+                    // ルールベースによる分析
+                    result = performRuleBasedAnalysis();
+                    updateStatus('warning', '⚠️ APIキーが設定されていないため、ルールベース分析を実行しました');
+                }
+
+                // 結果の保存と表示
+                localStorage.setItem('analysis_data', JSON.stringify(result));
+                analysisData = result;
+                displayAnalysisResults(result);
+                
+                updateStatus('success', '✅ AI分析が完了しました');
+                
+            } catch (error) {
+                console.error('分析エラー:', error);
+                updateStatus('error', '❌ 分析中にエラーが発生しました: ' + error.message);
+            } finally {
+                isAnalyzing = false;
+                startAnalysisBtn.disabled = false;
+                startAnalysisBtn.innerHTML = '🤖 GPT-3.5分析開始';
+            }
+        }
+
+        // GPT-3.5による分析
+        async function performGPTAnalysis() {
+            const prompt = `以下の入力データを分析して、ユーザーのスキルと思考軸を抽出してください。
+
+入力データ:
+${memoriesData.map(memory => memory.content).join('\n\n')}
+
+以下のJSON形式で結果を返してください:
+{
+  "skills": [
+    {
+      "name": "スキル名",
+      "level": "beginner|intermediate|advanced|expert",
+      "category": "カテゴリ",
+      "description": "説明",
+      "frequency": 数値(1-100)
+    }
+  ],
+  "thinking_patterns": [
+    {
+      "name": "思考軸名",
+      "frequency": 数値(1-100),
+      "percentage": 数値(0-100),
+      "examples": "行動例"
+    }
+  ]
+}`;
+
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-3.5-turbo',
+                    messages: [{
+                        role: 'user',
+                        content: prompt
+                    }],
+                    max_tokens: 1500,
+                    temperature: 0.7
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`OpenAI API error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const analysisResult = JSON.parse(data.choices[0].message.content);
+            
+            return analysisResult;
+        }
+
+        // ルールベース分析
+        function performRuleBasedAnalysis() {
+            const skills = [];
+            const thinkingPatterns = [];
+            
+            // テキスト解析によるスキル検出
+            const skillKeywords = {
+                'プログラミング': ['react', 'javascript', 'コンポーネント', 'hooks', 'コード'],
+                '英語学習': ['英語', 'english', 'プレゼン', '会話', 'ビジネス'],
+                'データベース': ['データベース', 'sql', 'インデックス', '最適化', 'db'],
+                'マネジメント': ['チーム', 'ミーティング', '進捗', 'タスク', '管理'],
+                'マーケティング': ['マーケティング', '顧客', 'ニーズ', '戦略', '分析']
+            };
+
+            const allText = memoriesData.map(m => m.content.toLowerCase()).join(' ');
+            
+            for (const [category, keywords] of Object.entries(skillKeywords)) {
+                const matches = keywords.filter(keyword => allText.includes(keyword)).length;
+                if (matches > 0) {
+                    skills.push({
+                        name: category,
+                        level: matches >= 3 ? 'advanced' : matches >= 2 ? 'intermediate' : 'beginner',
+                        category: '技術',
+                        description: `${category}に関連する活動`,
+                        frequency: Math.min(matches * 20, 100)
+                    });
+                }
+            }
+
+            // 思考パターンの検出
+            const thinkingKeywords = {
+                '実践型思考': ['実際に', '使って', '試して', '実行', '実践'],
+                '論理型思考': ['分析', '理解', '整理', '解決', '最適化'],
+                '学習型思考': ['学習', '覚えて', '理解できる', '勉強', '練習'],
+                '協調型思考': ['チーム', 'ミーティング', '分担', '会議', '協力'],
+                '創造型思考': ['新しい', '戦略', '設計', '創造', 'アイデア']
+            };
+
+            for (const [pattern, keywords] of Object.entries(thinkingKeywords)) {
+                const matches = keywords.filter(keyword => allText.includes(keyword)).length;
+                if (matches > 0) {
+                    const frequency = Math.min(matches * 25, 100);
+                    thinkingPatterns.push({
+                        name: pattern,
+                        frequency: frequency,
+                        percentage: Math.round(frequency * 0.8),
+                        examples: `${pattern}に関連する活動パターン`
+                    });
+                }
+            }
+
+            return {
+                skills: skills,
+                thinking_patterns: thinkingPatterns
+            };
+        }
+
+        // 分析結果の表示
+        function displayAnalysisResults(data) {
+            updateSkillsTable(data.skills || []);
+            updateThinkingTable(data.thinking_patterns || []);
+        }
+
+        // スキルテーブルの更新
+        function updateSkillsTable(skills) {
+            if (skills.length === 0) {
+                skillsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <h3>📊 スキルデータがありません</h3>
+                            <p>分析を実行してスキル情報を表示します</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            skillsTableBody.innerHTML = skills.map(skill => `
+                <tr class="fade-in">
+                    <td><strong>${escapeHtml(skill.name)}</strong></td>
+                    <td><span class="skill-level level-${skill.level}">${getLevelText(skill.level)}</span></td>
+                    <td>${escapeHtml(skill.category)}</td>
+                    <td>${escapeHtml(skill.description)}</td>
+                    <td>${skill.frequency}%</td>
+                </tr>
+            `).join('');
+        }
+
+        // 思考軸テーブルの更新
+        function updateThinkingTable(patterns) {
+            if (patterns.length === 0) {
+                thinkingTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="empty-state">
+                            <h3>🧠 思考軸データがありません</h3>
+                            <p>分析を実行して思考軸情報を表示します</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            thinkingTableBody.innerHTML = patterns.map(pattern => `
+                <tr class="fade-in">
+                    <td><strong>${escapeHtml(pattern.name)}</strong></td>
+                    <td>
+                        <div class="thinking-frequency">
+                            <div class="frequency-bar">
+                                <div class="frequency-fill" style="width: ${pattern.frequency}%"></div>
+                            </div>
+                            <span>${pattern.frequency}%</span>
+                        </div>
+                    </td>
+                    <td>${pattern.percentage}%</td>
+                    <td>${escapeHtml(pattern.examples)}</td>
+                </tr>
+            `).join('');
+        }
+
+        // ステータス更新
+        function updateStatus(type, message) {
+            statusIndicator.className = `status-indicator status-${type}`;
+            statusIndicator.textContent = message;
+        }
+
+        // ユーティリティ関数
+        function getLevelText(level) {
+            const levels = {
+                beginner: '初心者',
+                intermediate: '中級者',
+                advanced: '上級者',
+                expert: 'エキスパート'
+            };
+            return levels[level] || level;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function logoutUser() {
+            console.log('🔒 Logging out...');
+            
+            // UserManagerのログアウト
+            if (window.userManager) {
+                window.userManager.logout();
+            }
+            
+            // セッション情報をクリア
+            sessionStorage.removeItem('authenticated');
+            sessionStorage.removeItem('username');
+            localStorage.removeItem('authenticated');
+            localStorage.removeItem('username');
+            localStorage.removeItem('currentUser');
+            
+            // ログインページにリダイレクト
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

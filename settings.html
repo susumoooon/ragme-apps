@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAGme - 設定</title>
+    
+    <!-- ナビゲーション管理 -->
+    <script src="navigation.js"></script>
+    
+    <!-- ユーザー管理システム -->
+    <script src="user-manager.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #20b2aa;
+            --primary-dark: #16a085;
+            --secondary: #48d1cc;
+            --accent: #06d6a0;
+            --accent-dark: #05b08a;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #16213e;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --bg-glass: rgba(255, 255, 255, 0.1);
+            
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            
+            --border: rgba(255, 255, 255, 0.1);
+            --border-focus: rgba(32, 178, 170, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(32, 178, 170, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(72, 209, 204, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(6, 214, 160, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-brand i {
+            font-size: 1.8rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            background: rgba(32, 178, 170, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            background: rgba(32, 178, 170, 0.2);
+            box-shadow: 0 0 20px rgba(32, 178, 170, 0.3);
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .username-display {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* ページ遷移のスタイル */
+        .page-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .page-transition.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 設定コンテナのスタイル */
+        .settings-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+        }
+
+        .settings-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .settings-section:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .setting-description {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* トグルスイッチ */
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(30px);
+        }
+
+        /* セレクトとインプットのスタイル */
+        .setting-select,
+        .setting-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            min-width: 150px;
+            transition: all 0.3s ease;
+        }
+
+        .setting-select:focus,
+        .setting-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .setting-select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* アクションボタン */
+        .settings-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-save,
+        .btn-reset {
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #1a1a1a;
+            border: none;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(32, 178, 170, 0.3);
+        }
+
+        .btn-reset {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-reset:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* ステータスインジケーター */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .status-saved {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-modified {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+            
+            .nav-menu {
+                gap: 0.5rem;
+            }
+            
+            .nav-link span {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ページ遷移用のオーバーレイ -->
+    <div class="page-transition" id="pageTransition"></div>
+
+    <!-- ナビゲーション -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-robot"></i>
+                <span>RAGme</span>
+            </div>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link" data-page="home">
+                    <i class="fas fa-home"></i>
+                    <span>ホーム</span>
+                </a>
+                <a href="memory.html" class="nav-link" data-page="memory">
+                    <i class="fas fa-brain"></i>
+                    <span>メモリー</span>
+                </a>
+                <a href="analysis.html" class="nav-link" data-page="analysis">
+                    <i class="fas fa-chart-line"></i>
+                    <span>AI分析</span>
+                </a>
+                <a href="settings.html" class="nav-link active" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>設定</span>
+                </a>
+                <div class="user-info">
+                    <span class="username-display" id="usernameDisplay"></span>
+                    <button class="logout-btn" onclick="logoutUser()">
+                        <i class="fas fa-sign-out-alt"></i> ログアウト
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- メインコンテンツ -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-cog"></i>
+                設定
+            </h1>
+            <p class="page-subtitle">アプリケーションの設定を管理</p>
+        </div>
+
+        <div class="settings-container">
+            <!-- 一般設定セクション -->
+            <div class="settings-section">
+                <h2 class="section-title">
+                    <i class="fas fa-sliders-h"></i>
+                    一般設定
+                </h2>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">ダークモード</div>
+                        <div class="setting-description">アプリケーションの表示テーマを切り替えます</div>
+                    </div>
+                    <div class="toggle-switch active" id="darkModeToggle"></div>
+                </div>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">言語設定</div>
+                        <div class="setting-description">アプリケーションの表示言語を選択</div>
+                    </div>
+                    <select class="setting-select" id="languageSelect">
+                        <option value="ja" selected>日本語</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 通知設定セクション -->
+      
+            <div class="settings-section">
+                <h2 class="section-title">
+                    <i class="fas fa-bell"></i>
+                    通知設定
+                </h2>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">メール通知</div>
+                        <div class="setting-description">重要な更新やお知らせをメールで受け取る</div>
+                    </div>
+                    <div class="toggle-switch" id="emailNotificationToggle"></div>
+                </div>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">プッシュ通知</div>
+                        <div class="setting-description">ブラウザでプッシュ通知を受け取る</div>
+                    </div>
+                    <div class="toggle-switch" id="pushNotificationToggle"></div>
+                </div>
+            </div>
+
+            <!-- プライバシー設定セクション -->
+            <div class="settings-section">
+                <h2 class="section-title">
+                    <i class="fas fa-shield-alt"></i>
+                    プライバシー設定
+                </h2>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">データ共有</div>
+                        <div class="setting-description">利用状況データを共有して機能改善に協力する</div>
+                    </div>
+                    <div class="toggle-switch" id="dataSharingToggle"></div>
+                </div>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">アクティビティ履歴</div>
+                        <div class="setting-description">アクティビティ履歴を保存する期間を設定</div>
+                    </div>
+                    <select class="setting-select" id="activityHistorySelect">
+                        <option value="7">7日間</option>
+                        <option value="30" selected>30日間</option>
+                        <option value="90">90日間</option>
+                        <option value="365">1年間</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- アクションボタン -->
+            <div class="settings-actions">
+                <button class="btn-save" id="saveSettings">
+                    <i class="fas fa-save"></i>
+                    設定を保存
+                </button>
+                <button class="btn-reset" id="resetSettings">
+                    <i class="fas fa-undo"></i>
+                    初期設定に戻す
+                </button>
+            </div>
+
+            <!-- 保存ステータス -->
+            <div class="status-indicator status-saved" id="saveStatus" style="display: none;">
+                <i class="fas fa-check-circle"></i>
+                設定が保存されました
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 認証状態を確認
+        function isAuthenticated() {
+            return sessionStorage.getItem('authenticated') === 'true' || 
+                   (window.userManager && window.userManager.isLoggedIn());
+        }
+
+        // ページロード時に認証チェック
+        if (!isAuthenticated()) {
+            window.location.href = 'index.html';
+        }
+
+        // ユーザー名を即座に設定
+        const user = window.userManager && window.userManager.getCurrentUser();
+        const username = user ? user.username : sessionStorage.getItem('username');
+        if (username) {
+            const usernameDisplay = document.getElementById('usernameDisplay');
+            if (usernameDisplay) {
+                usernameDisplay.textContent = username;
+            }
+        }
+
+        // ログアウト処理
+        function logout() {
+            if (window.userManager) {
+                window.userManager.logout();
+            }
+            sessionStorage.removeItem('authenticated');
+            sessionStorage.removeItem('username');
+            window.location.href = 'index.html';
+        }
+
+        // ページ遷移の処理
+        document.addEventListener('DOMContentLoaded', function() {
+            // 現在のページに基づいてヘッダーを更新
+            updateHeaderState();
+            
+            // 全てのナビゲーションリンクを取得
+            const navLinks = document.querySelectorAll('.nav-link, .nav-brand');
+            
+            // 設定の初期化
+            initializeSettings();
+            
+            // トグルスイッチの処理
+            document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    showModifiedStatus();
+                });
+            });
+            
+            // セレクトボックスの変更処理
+            document.querySelectorAll('.setting-select').forEach(select => {
+                select.addEventListener('change', showModifiedStatus);
+            });
+            
+            // 設定保存ボタンの処理
+            document.getElementById('saveSettings').addEventListener('click', saveSettings);
+            
+            // 設定リセットボタンの処理
+            document.getElementById('resetSettings').addEventListener('click', resetSettings);
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const href = this.getAttribute('href');
+                    const transition = document.getElementById('pageTransition');
+                    
+                    // 即座にヘッダーの状態を更新
+                    updateHeaderForNavigation(href);
+                    
+                    // トランジションを表示
+                    transition.classList.add('active');
+                    
+                    // 認証状態とユーザー情報を維持したまま遷移
+                    if (window.userManager && window.userManager.isLoggedIn()) {
+                        const user = window.userManager.getCurrentUser();
+                        if (user) {
+                            sessionStorage.setItem('authenticated', 'true');
+                            sessionStorage.setItem('username', user.username);
+                        }
+                    }
+                    
+                    // 少し遅延してから遷移
+                    setTimeout(() => {
+                        window.location.href = href;
+                    }, 300);
+                });
+            });
+        });
+
+        // 設定の初期化
+        function initializeSettings() {
+            // ローカルストレージから設定を読み込む
+            const settings = JSON.parse(localStorage.getItem('userSettings')) || getDefaultSettings();
+            
+            // ダークモードの設定
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (settings.darkMode) {
+                darkModeToggle.classList.add('active');
+            }
+            
+            // 言語設定
+            document.getElementById('languageSelect').value = settings.language;
+            
+            // 通知設定
+            const emailNotificationToggle = document.getElementById('emailNotificationToggle');
+            if (settings.emailNotifications) {
+                emailNotificationToggle.classList.add('active');
+            }
+            
+            const pushNotificationToggle = document.getElementById('pushNotificationToggle');
+            if (settings.pushNotifications) {
+                pushNotificationToggle.classList.add('active');
+            }
+            
+            // プライバシー設定
+            const dataSharingToggle = document.getElementById('dataSharingToggle');
+            if (settings.dataSharing) {
+                dataSharingToggle.classList.add('active');
+            }
+            
+            document.getElementById('activityHistorySelect').value = settings.activityHistory;
+        }
+
+        // デフォルト設定を取得
+        function getDefaultSettings() {
+            return {
+                darkMode: true,
+                language: 'ja',
+                emailNotifications: false,
+                pushNotifications: false,
+                dataSharing: false,
+                activityHistory: '30'
+            };
+        }
+
+        // 設定の保存
+        function saveSettings() {
+            const settings = {
+                darkMode: document.getElementById('darkModeToggle').classList.contains('active'),
+                language: document.getElementById('languageSelect').value,
+                emailNotifications: document.getElementById('emailNotificationToggle').classList.contains('active'),
+                pushNotifications: document.getElementById('pushNotificationToggle').classList.contains('active'),
+                dataSharing: document.getElementById('dataSharingToggle').classList.contains('active'),
+                activityHistory: document.getElementById('activityHistorySelect').value
+            };
+            
+            // 設定をローカルストレージに保存
+            localStorage.setItem('userSettings', JSON.stringify(settings));
+            
+            // 保存成功メッセージを表示
+            const saveStatus = document.getElementById('saveStatus');
+            saveStatus.style.display = 'inline-flex';
+            saveStatus.classList.remove('status-modified');
+            saveStatus.classList.add('status-saved');
+            saveStatus.innerHTML = '<i class="fas fa-check-circle"></i>設定が保存されました';
+            
+            // 3秒後にメッセージを非表示
+            setTimeout(() => {
+                saveStatus.style.display = 'none';
+            }, 3000);
+        }
+
+        // 設定のリセット
+        function resetSettings() {
+            if (confirm('設定を初期状態に戻しますか？')) {
+                localStorage.removeItem('userSettings');
+                initializeSettings();
+                
+                // リセット成功メッセージを表示
+                const saveStatus = document.getElementById('saveStatus');
+                saveStatus.style.display = 'inline-flex';
+                saveStatus.classList.remove('status-modified');
+                saveStatus.classList.add('status-saved');
+                saveStatus.innerHTML = '<i class="fas fa-check-circle"></i>設定がリセットされました';
+                
+                // 3秒後にメッセージを非表示
+                setTimeout(() => {
+                    saveStatus.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        // 設定変更状態の表示
+        function showModifiedStatus() {
+            const saveStatus = document.getElementById('saveStatus');
+            saveStatus.style.display = 'inline-flex';
+            saveStatus.classList.remove('status-saved');
+            saveStatus.classList.add('status-modified');
+            saveStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i>変更が保存されていません';
+        }
+
+        // ヘッダーの状態を更新する関数
+        function updateHeaderState() {
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (currentPath.endsWith(href) || 
+                    (currentPath.endsWith('/') && href === 'index.html') ||
+                    (currentPath === '' && href === 'index.html')) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        // ナビゲーション時にヘッダーを更新する関数
+        function updateHeaderForNavigation(targetPath) {
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === targetPath) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

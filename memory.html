@@ -1,0 +1,2281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAGme - メモリー管理</title>
+    
+    <!-- ナビゲーション管理 -->
+    <script src="navigation.js"></script>
+    
+    <!-- ユーザー管理システム -->
+    <script src="user-manager.js"></script>
+    
+    <!-- 暗号化ライブラリ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #20b2aa;
+            --primary-hover: #16a085;
+            --secondary-color: #48d1cc;
+            --success-color: #20b2aa;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --background-dark: #0f0f23;
+            --surface-dark: #1a1a2e;
+            --surface-light: #16213e;
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-cyan: #20b2aa;
+            --bg-secondary: rgba(30, 41, 59, 0.95);
+            --bg-tertiary: rgba(30, 41, 59, 0.95);
+            --bg-glass: rgba(30, 41, 59, 0.95);
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--background-dark) 0%, var(--surface-dark) 50%, var(--surface-light) 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(32, 178, 170, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(72, 209, 204, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(6, 214, 160, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .header {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: var(--accent-cyan);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            margin-left: auto;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: rgba(100, 116, 139, 0.1);
+        }
+
+        .nav-link.active {
+            color: var(--accent-cyan);
+            background: rgba(32, 178, 170, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .username-display {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            margin-top:20px; /* ヘッダーの高さ分の余白を追加 */
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            margin-top: 2rem; /* タイトル部分の上部余白を追加 */
+        }
+
+        .page-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .page-title i {
+            font-size: 3rem;
+            color: var(--primary-color);
+        }
+
+        .page-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .memory-controls {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: var(--surface-light);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-btn, .clear-btn {
+            padding: 1rem 2rem;
+            border: 1px solid var(--accent-cyan);
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(32, 178, 170, 0.05);
+            color: var(--accent-cyan);
+            backdrop-filter: blur(10px);
+        }
+
+        .search-btn:hover {
+            background: rgba(32, 178, 170, 0.15);
+            border-color: #16a085;
+            color: #16a085;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(32, 178, 170, 0.2);
+        }
+
+        .clear-btn {
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .clear-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 0.75rem 1rem;
+            background: var(--surface-light);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .export-btn {
+            padding: 0.75rem 1.5rem;
+            background: rgba(26, 26, 46, 0.8);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(32, 178, 170, 0.3);
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .export-btn:hover {
+            background: rgba(32, 178, 170, 0.1);
+            border-color: var(--accent-cyan);
+            color: #16a085;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(32, 178, 170, 0.15);
+        }
+
+        .selection-info {
+            background: var(--bg-secondary);
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .selection-info i {
+            color: var(--accent-cyan);
+        }
+
+        .memory-container {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+        }
+
+        .memory-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+        }
+
+        .memory-table thead {
+            background: var(--bg-tertiary);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .memory-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-tertiary);
+            z-index: 10;
+        }
+
+        .memory-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+
+        .memory-table tbody tr {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .memory-table tbody tr:hover {
+            background: var(--bg-glass);
+        }
+
+        .memory-table tbody tr.selected {
+            background: var(--bg-glass);
+        }
+
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 1rem;
+        }
+
+        .type-badge.text-input {
+            background: rgba(32, 178, 170, 0.2);
+            color: var(--primary);
+        }
+
+        .type-badge.voice-transcription {
+            background: rgba(147, 51, 234, 0.2);
+            color: #a855f7;
+        }
+
+        .content-preview {
+            max-width: 400px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+        }
+
+        .content-full {
+            max-width: 400px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+
+        .date-cell {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .size-cell {
+            text-align: right;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .actions-cell {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .action-btn-small {
+            padding: 0.4rem 0.6rem;
+            margin: 0 0.2rem;
+            background: var(--surface-light);
+            border: none;
+            border-radius: 0.4rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .action-btn-small:hover {
+            color: var(--text-primary);
+            background: var(--border-color);
+            transform: translateY(-1px);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--bg-tertiary);
+            border-top: 1px solid var(--border);
+        }
+
+        .page-info {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .page-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            background: var(--surface-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--accent-cyan);
+            color: white;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .expand-btn {
+            background: none;
+            border: none;
+            color: var(--accent-cyan);
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        .expand-btn:hover {
+            text-decoration: underline;
+        }
+
+        .no-memories {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .no-memories i {
+            font-size: 4rem;
+            color: var(--border-color);
+            margin-bottom: 1rem;
+        }
+
+        .no-memories h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav {
+                gap: 1rem;
+            }
+
+            .nav-links {
+                gap: 0.5rem;
+            }
+
+            .nav-link {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .memory-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .export-btn {
+                margin-left: 0;
+                margin-top: 1rem;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ページ遷移のスタイル追加 */
+        .page-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background-dark);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .page-transition.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* スクロールバー */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--surface-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-hover);
+        }
+
+        /* 編集モーダル */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--surface-dark);
+            border-radius: 15px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+            transform: scale(1.1);
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .edit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .edit-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .edit-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .modal-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-btn.primary {
+            background: var(--primary-color);
+            color: #1a1a1a;
+            border: none;
+        }
+
+        .modal-btn.primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .modal-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .modal-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 768px) {
+            .nav {
+                gap: 1rem;
+            }
+
+            .nav-links {
+                gap: 0.5rem;
+            }
+
+            .nav-link {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .page-title {
+                font-size: 2rem;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .memory-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .export-btn {
+                margin-left: 0;
+                margin-top: 1rem;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* トースト通知のスタイル */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background: var(--surface-dark);
+            color: var(--text-primary);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .toast.success {
+            border-left: 4px solid var(--success-color);
+        }
+        .toast.error {
+            border-left: 4px solid var(--danger-color);
+        }
+        .toast.warning {
+            border-left: 4px solid var(--warning-color);
+        }
+        .toast.info {
+            border-left: 4px solid var(--primary-color);
+        }
+
+        /* ストレージ情報のスタイル */
+        .storage-info {
+            background: var(--bg-glass);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .storage-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .storage-header h3 {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .storage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .storage-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .storage-title {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .storage-value {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .storage-details {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .source-label, .usage-label {
+            margin-right: 0.5rem;
+            opacity: 0.7;
+        }
+
+        .source-value, .usage-value {
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .storage-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .storage-details {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+
+        /* ナビゲーションのスタイルを更新 */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+
+        .nav-brand i {
+            font-size: 1.8rem;
+            color: var(--accent-cyan);
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-cyan);
+            background: rgba(32, 178, 170, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            color: var(--accent-cyan);
+            background: rgba(32, 178, 170, 0.2);
+            box-shadow: 0 0 20px rgba(32, 178, 170, 0.3);
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .username-display {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        /* ハンバーガーメニュー */
+        .hamburger-menu {
+            display: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border: none;
+            background: none;
+            color: var(--text-primary);
+        }
+
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 70px;
+            right: 1rem;
+            background: var(--bg-glass);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            padding: 1rem;
+            z-index: 1000;
+        }
+
+        .mobile-menu.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* レスポンシブデザインの更新 */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+            
+            .nav-menu {
+                gap: 0.5rem;
+            }
+            
+            .nav-link span {
+                display: none;
+            }
+            
+            .user-info {
+                display: none;
+            }
+            
+            .hamburger-menu {
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-link {
+                padding: 0.5rem;
+                min-width: 40px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ページ遷移用のオーバーレイ -->
+    <div class="page-transition" id="pageTransition"></div>
+
+    <!-- 編集モーダル -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-edit"></i>
+                    メモリーを編集
+                </h2>
+                <button class="modal-close" onclick="closeEditModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form class="edit-form" id="editForm">
+                    <input type="hidden" id="editMemoryId">
+                    <div class="form-group">
+                        <label class="form-label">タイプ</label>
+                        <div class="memory-type" id="editMemoryType"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">作成日時</label>
+                        <div class="memory-date" id="editMemoryDate"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">内容</label>
+                        <textarea class="edit-textarea" id="editMemoryContent" placeholder="メモリーの内容を入力..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeEditModal()">
+                    <i class="fas fa-times"></i>
+                    キャンセル
+                </button>
+                <button class="modal-btn primary" onclick="saveEditedMemory()">
+                    <i class="fas fa-save"></i>
+                    保存
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <i class="fas fa-robot"></i>
+                    <span>RAGme</span>
+                </div>
+                <div class="nav-menu">
+                    <a href="index.html" class="nav-link" data-page="home">
+                        <i class="fas fa-home"></i>
+                        <span>ホーム</span>
+                    </a>
+                    <a href="memory.html" class="nav-link active" data-page="memory">
+                        <i class="fas fa-brain"></i>
+                        <span>メモリー</span>
+                    </a>
+                    <a href="analysis.html" class="nav-link" data-page="analysis">
+                        <i class="fas fa-chart-line"></i>
+                        <span>AI分析</span>
+                    </a>
+                    <a href="settings.html" class="nav-link" data-page="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>設定</span>
+                    </a>
+                    <div class="user-info">
+                        <span class="username-display" id="usernameDisplay"></span>
+                        <button class="logout-btn" onclick="logoutUser()">
+                            <i class="fas fa-sign-out-alt"></i> ログアウト
+                        </button>
+                    </div>
+                </div>
+                <button class="hamburger-menu" id="hamburgerMenu">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </nav>
+        <!-- モバイルメニュー -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="user-info" style="margin-bottom: 1rem;">
+                <span class="username-display" id="mobileUsernameDisplay"></span>
+                <button class="logout-btn" onclick="logoutUser()">
+                    <i class="fas fa-sign-out-alt"></i> ログアウト
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-brain"></i>
+                メモリー管理
+            </h1>
+            <p class="page-subtitle">保存された音声・テキストデータを管理</p>
+        </div>
+
+        <div class="memory-controls">
+            <!-- ストレージ情報 -->
+            <div class="storage-info">
+                <div class="storage-header">
+                    <h3><i class="fas fa-database"></i> ストレージ情報</h3>
+                </div>
+                <div class="storage-grid">
+                    <div class="storage-card">
+                        <div class="storage-title">メモリー総数</div>
+                        <div class="storage-value" id="totalMemories">-</div>
+                    </div>
+                    <div class="storage-card">
+                        <div class="storage-title">音声入力</div>
+                        <div class="storage-value" id="voiceMemories">-</div>
+                    </div>
+                    <div class="storage-card">
+                        <div class="storage-title">テキスト入力</div>
+                        <div class="storage-value" id="textMemories">-</div>
+                    </div>
+                    <div class="storage-card">
+                        <div class="storage-title">総文字数</div>
+                        <div class="storage-value" id="totalChars">-</div>
+                    </div>
+                </div>
+                <div class="storage-details">
+                    <div class="storage-source">
+                        <span class="source-label">データソース:</span>
+                        <span class="source-value" id="dataSource">LocalStorage (ragme_memories)</span>
+                    </div>
+                    <div class="storage-usage">
+                        <span class="usage-label">使用容量:</span>
+                        <span class="usage-value" id="storageUsage">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="メモリーを検索..." id="searchInput">
+                <button class="search-btn" id="searchBtn">
+                    <i class="fas fa-search"></i>
+                    検索
+                </button>
+                <button class="clear-btn" id="clearBtn">
+                    <i class="fas fa-times"></i>
+                    クリア
+                </button>
+            </div>
+
+            <div class="filter-controls">
+                <select class="filter-select" id="typeFilter">
+                    <option value="">全てのタイプ</option>
+                    <option value="text-input">テキスト</option>
+                    <option value="voice-transcription">音声入力</option>
+                </select>
+
+                <select class="filter-select" id="sortFilter">
+                    <option value="newest">新しい順</option>
+                    <option value="oldest">古い順</option>
+                    <option value="type">タイプ別</option>
+                </select>
+
+                <button class="export-btn" id="exportBtn">
+                    <i class="fas fa-download"></i>
+                    エクスポート
+                </button>
+                
+                <button class="export-btn" id="deleteSelectedBtn" style="background: var(--danger-color); margin-left: 0.5rem; color: var(--text-primary);" disabled>
+                    <i class="fas fa-trash" style="color: var(--text-primary);"></i>
+                    選択削除
+                </button>
+            </div>
+        </div>
+
+        <div class="selection-info">
+            <input type="checkbox" id="selectAll">
+            <i class="fas fa-info-circle"></i>
+            <span id="selectionCount">全て選択 0件選択中</span>
+        </div>
+
+        <div class="memory-container" id="memoryContainer">
+            <table class="memory-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">
+                            <input type="checkbox" id="selectAllTable">
+                        </th>
+                        <th style="width: 120px;">タイプ</th>
+                        <th>内容</th>
+                        <th style="width: 140px;">日時</th>
+                        <th style="width: 80px;">文字数</th>
+                        <th style="width: 120px;">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="memoryTableBody">
+                    <!-- メモリー行はJavaScriptで動的に生成されます -->
+                </tbody>
+            </table>
+            <div class="pagination" id="paginationContainer">
+                <div class="page-info" id="pageInfo">0件中 0-0件を表示</div>
+                <div class="page-controls">
+                    <button class="page-btn" id="prevBtn" onclick="changePage(-1)">前へ</button>
+                    <span id="currentPageInfo">1 / 1</span>
+                    <button class="page-btn" id="nextBtn" onclick="changePage(1)">次へ</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 認証状態を確認
+        function isAuthenticated() {
+            return sessionStorage.getItem('authenticated') === 'true' || 
+                   (window.userManager && window.userManager.isLoggedIn());
+        }
+
+        // ページロード時に認証チェック
+        if (!isAuthenticated()) {
+            window.location.href = 'index.html';
+        }
+
+        // 即時認証チェックスクリプト
+        (function() {
+            const isAuthenticated = 
+                (window.userManager && window.userManager.isLoggedIn()) || 
+                sessionStorage.getItem('authenticated') === 'true';
+
+            if (!isAuthenticated) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // ユーザー名を即座に設定
+            const user = window.userManager && window.userManager.getCurrentUser();
+            const username = user ? user.username : sessionStorage.getItem('username');
+            if (username) {
+                const usernameDisplay = document.getElementById('usernameDisplay');
+                if (usernameDisplay) {
+                    usernameDisplay.textContent = username;
+                }
+            }
+        })();
+
+        // グローバル変数
+        let memories = [];
+        let filteredMemories = [];
+        let selectedMemories = new Set();
+        let currentPage = 1;
+        let itemsPerPage = 20;
+        let expandedRows = new Set();
+
+        // ユーザー認証チェック
+        function initializeAuth() {
+            console.log('🔐 Checking authentication...');
+            
+            if (typeof window.userManager === 'undefined') {
+                console.error('UserManager not loaded');
+                alert('ユーザー管理システムの読み込みに失敗しました。ホームページに戻ります。');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (!window.userManager.isLoggedIn()) {
+                console.log('User not logged in, redirecting...');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const user = window.userManager.getCurrentUser();
+            if (user) {
+                document.getElementById('usernameDisplay').textContent = user.username;
+                console.log('✅ User authenticated:', user.username);
+            }
+        }
+
+        // ログアウト
+        function logout() {
+            window.userManager.logout();
+            window.location.href = 'index.html';
+        }
+
+        // イベントリスナーの設定
+        function setupEventListeners() {
+            console.log('🎯 Setting up event listeners...');
+            
+            // 検索機能
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const typeFilter = document.getElementById('typeFilter');
+            const sortFilter = document.getElementById('sortFilter');
+
+            if (searchInput) searchInput.addEventListener('input', debounce(filterMemories, 300));
+            if (searchBtn) searchBtn.addEventListener('click', filterMemories);
+            if (clearBtn) clearBtn.addEventListener('click', clearSearch);
+            if (typeFilter) typeFilter.addEventListener('change', filterMemories);
+            if (sortFilter) sortFilter.addEventListener('change', filterMemories);
+
+            // 全選択機能
+            const selectAllTable = document.getElementById('selectAllTable');
+            const selectAll = document.getElementById('selectAll');
+            
+            if (selectAllTable) selectAllTable.addEventListener('change', toggleSelectAll);
+            if (selectAll) selectAll.addEventListener('change', toggleSelectAll);
+
+            // エクスポートと削除機能
+            const exportBtn = document.getElementById('exportBtn');
+            const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+            
+            if (exportBtn) exportBtn.addEventListener('click', exportMemories);
+            if (deleteSelectedBtn) deleteSelectedBtn.addEventListener('click', deleteSelectedMemories);
+
+            console.log('✅ Event listeners setup complete');
+        }
+
+        // ページ読み込み時の初期化処理
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Initializing Memory Manager...');
+            
+            try {
+                // 認証チェック
+                if (!isAuthenticated()) {
+                    console.log('🔒 User not authenticated, redirecting...');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // ユーザー名を表示
+                const user = window.userManager && window.userManager.getCurrentUser();
+                if (user) {
+                    const usernameDisplay = document.getElementById('usernameDisplay');
+                    const mobileUsernameDisplay = document.getElementById('mobileUsernameDisplay');
+                    if (usernameDisplay) {
+                        usernameDisplay.textContent = user.username;
+                    }
+                    if (mobileUsernameDisplay) {
+                        mobileUsernameDisplay.textContent = user.username;
+                    }
+                }
+
+                // ハンバーガーメニューの設定
+                const hamburgerMenu = document.getElementById('hamburgerMenu');
+                const mobileMenu = document.getElementById('mobileMenu');
+                
+                if (hamburgerMenu && mobileMenu) {
+                    hamburgerMenu.addEventListener('click', function() {
+                        mobileMenu.classList.toggle('show');
+                    });
+
+                    // メニュー外クリックで閉じる
+                    document.addEventListener('click', function(event) {
+                        if (!hamburgerMenu.contains(event.target) && 
+                            !mobileMenu.contains(event.target)) {
+                            mobileMenu.classList.remove('show');
+                        }
+                    });
+                }
+
+                // イベントリスナーの設定
+                setupEventListeners();
+
+                // メモリーデータの読み込みと表示
+                loadMemories();
+
+            } catch (error) {
+                console.error('❌ Initialization error:', error);
+                showToast('初期化中にエラーが発生しました', 'error');
+            }
+        });
+
+        // メモリーデータの読み込みと表示
+        function loadMemories() {
+            console.log('📥 Loading memories...');
+            
+            try {
+                // 各ストレージの状態を確認
+                const ragmeMemories = localStorage.getItem('ragme_memories');
+                const oldMemories = localStorage.getItem('memories');
+                const sessionMemories = sessionStorage.getItem('memories');
+                const testData = localStorage.getItem('testData'); // 「生麦生米生卵」のテストデータ
+
+                console.log('=== Storage Status ===');
+                console.log('ragme_memories:', ragmeMemories ? JSON.parse(ragmeMemories).length : 0, '件');
+                console.log('old memories:', oldMemories ? JSON.parse(oldMemories).length : 0, '件');
+                console.log('session memories:', sessionMemories ? JSON.parse(sessionMemories).length : 0, '件');
+                console.log('test data:', testData ? '存在します' : 'なし');
+
+                // データの統合
+                let allMemories = [];
+                
+                // 1. ragme_memoriesから読み込み（メイン）
+                if (ragmeMemories) {
+                    try {
+                        allMemories = JSON.parse(ragmeMemories);
+                        console.log('✅ Main storage loaded:', allMemories.length, '件');
+                    } catch (e) {
+                        console.error('❌ Error parsing ragme_memories:', e);
+                        allMemories = [];
+                    }
+                }
+
+                // 2. テストデータの移行（「生麦生米生卵」）
+                if (testData) {
+                    try {
+                        const testContent = testData;
+                        const testMemory = {
+                            id: `mem_${Date.now()}_test`,
+                            type: 'text-input',
+                            content: testContent,
+                            timestamp: new Date().toISOString(),
+                            size: `${testContent.length}文字`
+                        };
+                        
+                        // 重複チェック
+                        const isDuplicate = allMemories.some(mem => mem.content === testContent);
+                        if (!isDuplicate) {
+                            allMemories.push(testMemory);
+                            console.log('✅ Test data migrated');
+                            // 移行後、元のデータを削除
+                            localStorage.removeItem('testData');
+                        }
+                    } catch (e) {
+                        console.error('❌ Error migrating test data:', e);
+                    }
+                }
+
+                // 3. 古いmemoriesから読み込み
+                if (oldMemories) {
+                    try {
+                        const parsedOldMemories = JSON.parse(oldMemories);
+                        const newMemories = parsedOldMemories.filter(newMem => 
+                            !allMemories.some(existingMem => existingMem.id === newMem.id)
+                        );
+                        if (newMemories.length > 0) {
+                            allMemories = [...allMemories, ...newMemories];
+                            console.log('✅ Old memories added:', newMemories.length, '件');
+                        }
+                    } catch (e) {
+                        console.error('❌ Error parsing old memories:', e);
+                    }
+                }
+
+                // 4. セッションストレージから読み込み
+                if (sessionMemories) {
+                    try {
+                        const parsedSessionMemories = JSON.parse(sessionMemories);
+                        const newMemories = parsedSessionMemories.filter(newMem => 
+                            !allMemories.some(existingMem => existingMem.id === newMem.id)
+                        );
+                        if (newMemories.length > 0) {
+                            allMemories = [...allMemories, ...newMemories];
+                            console.log('✅ Session memories added:', newMemories.length, '件');
+                        }
+                    } catch (e) {
+                        console.error('❌ Error parsing session memories:', e);
+                    }
+                }
+
+                // データの正規化
+                allMemories = allMemories.map(memory => ({
+                    id: memory.id || `mem_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    type: memory.type || 'text-input',
+                    content: memory.content || '',
+                    timestamp: memory.timestamp || new Date().toISOString(),
+                    size: `${(memory.content || '').length}文字`
+                }));
+
+                // 重複の削除
+                allMemories = Array.from(new Map(allMemories.map(item => [item.id, item])).values());
+
+                // 日付でソート（新しい順）
+                allMemories.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                console.log('✨ Total consolidated memories:', allMemories.length, '件');
+
+                // メモリー配列を更新
+                memories = allMemories;
+                filteredMemories = [...memories];
+
+                // 統合したデータを保存
+                localStorage.setItem('ragme_memories', JSON.stringify(allMemories));
+
+                // 表示を更新
+                renderMemories();
+                updateStorageInfo();
+                updateSelectionInfo();
+
+                // 古いストレージをクリア
+                if (allMemories.length > 0) {
+                    localStorage.removeItem('memories');
+                    sessionStorage.removeItem('memories');
+                }
+
+                showToast(`✨ ${allMemories.length}件のメモリーを読み込みました`, 'success');
+                
+            } catch (error) {
+                console.error('❌ Error loading memories:', error);
+                showToast('メモリーの読み込みに失敗しました', 'error');
+                memories = [];
+                filteredMemories = [];
+                renderMemories();
+            }
+        }
+
+        // メモリーの表示更新
+        function renderMemories() {
+            const tableBody = document.getElementById('memoryTableBody');
+            if (!tableBody) {
+                console.error('❌ Table body element not found');
+                return;
+            }
+
+            if (filteredMemories.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="no-memories">
+                            <i class="fas fa-brain"></i>
+                            <h3>メモリーがありません</h3>
+                            <p>音声やテキストを入力して、最初のメモリーを作成してください</p>
+                        </td>
+                    </tr>
+                `;
+                updatePagination();
+                return;
+            }
+
+            // ページネーション計算
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredMemories.length);
+            const currentPageMemories = filteredMemories.slice(startIndex, endIndex);
+
+            // テーブル行の生成
+            const tableHTML = currentPageMemories.map(memory => {
+                const isExpanded = expandedRows.has(memory.id);
+                return `
+                    <tr class="memory-row ${selectedMemories.has(memory.id) ? 'selected' : ''}" data-id="${memory.id}">
+                        <td>
+                            <input type="checkbox" class="row-checkbox" data-id="${memory.id}" 
+                                   ${selectedMemories.has(memory.id) ? 'checked' : ''}>
+                        </td>
+                        <td>
+                            <span class="type-badge ${memory.type}">
+                                <i class="fas fa-${memory.type === 'text-input' ? 'keyboard' : 'microphone'}"></i>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="${isExpanded ? 'content-full' : 'content-preview'}">
+                                ${escapeHtml(memory.content || '')}
+                            </div>
+                            ${(memory.content || '').length > 50 ? `
+                                <button class="expand-btn" onclick="toggleContentExpansion('${memory.id}')">
+                                    ${isExpanded ? '省略表示' : '全文表示'}
+                                </button>
+                            ` : ''}
+                        </td>
+                        <td class="date-cell">${formatDateShort(memory.timestamp)}</td>
+                        <td class="size-cell">${memory.size || '0文字'}</td>
+                        <td class="actions-cell">
+                            <button class="action-btn-small" onclick="editMemory('${memory.id}')" title="編集">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn-small" onclick="copyMemory('${memory.id}')" title="コピー">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="action-btn-small" onclick="deleteMemory('${memory.id}')" title="削除">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            tableBody.innerHTML = tableHTML;
+
+            // イベントリスナーの再設定
+            setupTableEventListeners();
+            updatePagination();
+            updateSelectionInfo();
+        }
+
+        // テーブルのイベントリスナー設定
+        function setupTableEventListeners() {
+            document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', toggleMemorySelection);
+            });
+
+            document.querySelectorAll('.memory-row').forEach(row => {
+                row.addEventListener('click', (e) => {
+                    if (e.target.type === 'checkbox' || e.target.closest('button')) {
+                        return;
+                    }
+                    e.preventDefault();
+                });
+            });
+        }
+
+        // ページネーション更新
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredMemories.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredMemories.length);
+            
+            const pageInfo = document.getElementById('pageInfo');
+            const currentPageInfo = document.getElementById('currentPageInfo');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            if (pageInfo) {
+                pageInfo.textContent = `${filteredMemories.length}件中 ${startIndex + 1}-${endIndex}件を表示`;
+            }
+            
+            if (currentPageInfo) {
+                currentPageInfo.textContent = `${currentPage} / ${Math.max(1, totalPages)}`;
+            }
+            
+            if (prevBtn) {
+                prevBtn.disabled = currentPage <= 1;
+            }
+            
+            if (nextBtn) {
+                nextBtn.disabled = currentPage >= totalPages;
+            }
+        }
+
+        // ページ変更
+        function changePage(direction) {
+            const totalPages = Math.ceil(filteredMemories.length / itemsPerPage);
+            const newPage = currentPage + direction;
+            
+            if (newPage >= 1 && newPage <= totalPages) {
+                currentPage = newPage;
+                renderMemories();
+            }
+        }
+
+        // 内容の展開/縮小
+        function toggleContentExpansion(memoryId) {
+            if (expandedRows.has(memoryId)) {
+                expandedRows.delete(memoryId);
+            } else {
+                expandedRows.add(memoryId);
+            }
+            renderMemories();
+        }
+
+        // 短い日付フォーマット
+        function formatDateShort(timestamp) {
+            try {
+                const date = new Date(timestamp);
+                if (isNaN(date.getTime())) {
+                    return new Date().toLocaleDateString('ja-JP', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }).replace(/\//g, '/');
+                }
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                return `${month}/${day} ${hours}:${minutes}`;
+            } catch (error) {
+                const now = new Date();
+                return `${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            }
+        }
+
+        // メモリーコピー
+        function copyMemory(memoryId) {
+            const memory = memories.find(m => m.id === memoryId);
+            if (memory) {
+                navigator.clipboard.writeText(memory.content).then(() => {
+                    console.log('📋 Memory content copied to clipboard');
+                    // 簡単な視覚フィードバック
+                    const button = document.querySelector(`button[onclick="copyMemory('${memoryId}')"]`);
+                    if (button) {
+                        const original = button.innerHTML;
+                        button.innerHTML = '<i class="fas fa-check"></i>';
+                        setTimeout(() => {
+                            button.innerHTML = original;
+                        }, 1000);
+                    }
+                }).catch(err => {
+                    console.error('❌ Failed to copy text: ', err);
+                });
+            }
+        }
+
+        // メモリーフィルタリング
+        function filterMemories() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const typeFilter = document.getElementById('typeFilter').value;
+            const sortFilter = document.getElementById('sortFilter').value;
+
+            filteredMemories = memories.filter(memory => {
+                const matchesSearch = memory.content.toLowerCase().includes(searchTerm) ||
+                                    memory.title.toLowerCase().includes(searchTerm);
+                const matchesType = !typeFilter || memory.type === typeFilter;
+                
+                return matchesSearch && matchesType;
+            });
+
+            // ソート
+            switch (sortFilter) {
+                case 'newest':
+                    filteredMemories.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    break;
+                case 'oldest':
+                    filteredMemories.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                    break;
+                case 'type':
+                    filteredMemories.sort((a, b) => a.type.localeCompare(b.type));
+                    break;
+            }
+
+            currentPage = 1; // Reset to first page after filtering
+            renderMemories();
+            updateSelectionInfo();
+        }
+
+        // 検索クリア
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('typeFilter').value = '';
+            document.getElementById('sortFilter').value = 'newest';
+            filterMemories();
+        }
+
+        // 全選択/解除
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            if (selectAll.checked) {
+                filteredMemories.forEach(memory => selectedMemories.add(memory.id));
+            } else {
+                selectedMemories.clear();
+            }
+            renderMemories();
+            updateSelectionInfo();
+        }
+
+        // 個別選択
+        function toggleMemorySelection(event) {
+            const memoryId = event.target.dataset.id;
+            if (event.target.checked) {
+                selectedMemories.add(memoryId);
+            } else {
+                selectedMemories.delete(memoryId);
+            }
+            updateSelectionInfo();
+        }
+
+        // 選択状態の更新
+        function updateSelectionInfo() {
+            const selectionCount = document.getElementById('selectionCount');
+            const selectAll = document.getElementById('selectAll');
+            const deleteSelectedBtn = document.getElementById('deleteSelectedBtn');
+            
+            const selectedCount = selectedMemories.size;
+            const totalCount = filteredMemories.length;
+            
+            selectionCount.textContent = `全て選択 ${selectedCount}件選択中`;
+            
+            // まとめて削除ボタンの有効/無効制御
+            deleteSelectedBtn.disabled = selectedCount === 0;
+            
+            if (selectedCount === 0) {
+                selectAll.checked = false;
+                selectAll.indeterminate = false;
+            } else if (selectedCount === totalCount) {
+                selectAll.checked = true;
+                selectAll.indeterminate = false;
+            } else {
+                selectAll.checked = false;
+                selectAll.indeterminate = true;
+            }
+        }
+
+        // メモリー編集機能
+        function editMemory(memoryId) {
+            console.log('✏️ Edit memory:', memoryId);
+            const memory = memories.find(m => m.id === memoryId);
+            if (!memory) {
+                console.error('❌ Memory not found:', memoryId);
+                return;
+        }
+
+            // モーダルの各要素に値を設定
+            document.getElementById('editMemoryId').value = memory.id;
+            document.getElementById('editMemoryType').innerHTML = `
+                <span class="type-badge ${memory.type === 'text-input' ? 'text-input' : 'voice-transcription'}">
+                    <i class="fas fa-${memory.type === 'text-input' ? 'keyboard' : 'microphone'}"></i>
+                </span>
+            `;
+            document.getElementById('editMemoryDate').textContent = formatDate(memory.timestamp);
+            document.getElementById('editMemoryContent').value = memory.content;
+
+            // モーダルを表示
+            const modal = document.getElementById('editModal');
+            modal.classList.add('show');
+            
+            // テキストエリアにフォーカス
+            setTimeout(() => {
+                document.getElementById('editMemoryContent').focus();
+            }, 300);
+        }
+
+        function closeEditModal() {
+            const modal = document.getElementById('editModal');
+            modal.classList.remove('show');
+        }
+
+        function saveEditedMemory() {
+            const memoryId = document.getElementById('editMemoryId').value;
+            const content = document.getElementById('editMemoryContent').value.trim();
+
+            if (!content) {
+                showToast('内容を入力してください', 'warning');
+                return;
+            }
+
+            try {
+                // メモリーを更新
+                const memoryIndex = memories.findIndex(m => m.id === memoryId);
+                if (memoryIndex === -1) {
+                    throw new Error('メモリーが見つかりません');
+                }
+
+                // メモリーオブジェクトを更新
+                memories[memoryIndex] = {
+                    ...memories[memoryIndex],
+                    content: content,
+                    size: `${content.length}文字`,
+                    lastModified: new Date().toISOString()
+                };
+                
+                // LocalStorageに保存
+                localStorage.setItem('ragme_memories', JSON.stringify(memories));
+                
+                // UIを更新
+                filteredMemories = [...memories];
+                renderMemories();
+                closeEditModal();
+                updateStorageInfo();
+                
+                showToast('メモリーを更新しました', 'success');
+            } catch (error) {
+                console.error('❌ Error saving memory:', error);
+                showToast('保存中にエラーが発生しました', 'error');
+            }
+        }
+
+        // トースト通知の表示
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // モーダルの外側をクリックして閉じる
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        });
+
+        // ESCキーでモーダルを閉じる
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeEditModal();
+            }
+        });
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // イベントリスナーの設定
+        document.addEventListener('DOMContentLoaded', function() {
+            // 現在のページに基づいてヘッダーを更新
+            updateHeaderState();
+            
+            // 全てのナビゲーションリンクを取得
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const href = this.getAttribute('href');
+                    const page = this.getAttribute('data-page');
+                    const transition = document.getElementById('pageTransition');
+                    
+                    // 即座にヘッダーの状態を更新
+                    updateHeaderForNavigation(href);
+                    
+                    // トランジションを表示
+                    if (transition) {
+                        transition.classList.add('active');
+                    }
+                    
+                    // 認証状態の保持
+                    if (window.userManager && window.userManager.isLoggedIn()) {
+                        const user = window.userManager.getCurrentUser();
+                        if (user) {
+                            sessionStorage.setItem('authenticated', 'true');
+                            sessionStorage.setItem('username', user.username);
+                            localStorage.setItem(window.userManager.currentUserKey, JSON.stringify(user));
+                        }
+                    }
+                    
+                    // 遷移先の決定
+                    let targetUrl = href;
+                    if (page === 'analysis') {
+                        targetUrl = 'analysis.html';
+                    }
+                    
+                    // 少し遅延してから遷移
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 300);
+                });
+            });
+        });
+
+        // ヘッダーの状態を更新する関数
+        function updateHeaderState() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (isCurrentPage(href)) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        // 現在のページを判定する関数
+        function isCurrentPage(pageName) {
+            const currentPath = window.location.pathname;
+            return currentPath.endsWith(pageName) || 
+                   (currentPath.endsWith('/') && pageName === 'index.html') ||
+                   (currentPath === '' && pageName === 'index.html') ||
+                   (pageName === 'analysis.html' && currentPath.endsWith('analysis.html'));
+        }
+
+        // ナビゲーション時にヘッダーを更新する関数
+        function updateHeaderForNavigation(targetPath) {
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === targetPath) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        // HTMLエスケープ関数
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 日付フォーマット関数
+        function formatDate(timestamp) {
+            try {
+                const date = new Date(timestamp);
+                return date.toLocaleString('ja-JP', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (error) {
+                    return new Date().toLocaleString('ja-JP');
+                }
+        }
+
+        // メモリーのエクスポート
+        function exportMemories() {
+            try {
+                const user = window.userManager.getCurrentUser();
+                if (!user || !user.password) {
+                    showToast('⚠️ セキュリティのため、ログインが必要です', 'warning');
+                    return;
+                }
+
+                const exportData = {
+                    memories: memories,
+                    exportDate: new Date().toISOString(),
+                    version: '1.0',
+                    userId: user.id, // ユーザー識別子を追加
+                    exportId: generateId() // エクスポート識別子を追加
+                };
+
+                // データの暗号化
+                const encryptedData = encryptData(exportData, user.password);
+                
+                // 暗号化されたデータをファイルとして保存
+                const blob = new Blob([encryptedData], { type: 'application/ragme-encrypted' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ragme_memories_${new Date().toISOString().slice(0,10)}.ragme`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showToast('🔒 暗号化されたメモリーをエクスポートしました', 'success');
+            } catch (error) {
+                console.error('❌ Export error:', error);
+                showToast('エクスポート中にエラーが発生しました', 'error');
+            }
+        }
+
+        // メモリー保存時の暗号化
+        function saveMemoryToStorage(memoryData) {
+            try {
+                const user = window.userManager.getCurrentUser();
+                if (!user || !user.password) {
+                    throw new Error('認証情報が見つかりません');
+                }
+
+                // メモリーデータの暗号化
+                const encryptedMemory = encryptData(memoryData, user.password);
+                
+                // 暗号化されたデータを保存
+                const memories = window.userManager.getUserData('encrypted_memories') || [];
+                memories.unshift({
+                    id: memoryData.id,
+                    encryptedData: encryptedMemory,
+                    timestamp: new Date().toISOString()
+                });
+                
+                window.userManager.saveUserData('encrypted_memories', memories);
+                
+                // セッションストレージにも暗号化して保存
+                sessionStorage.setItem('encrypted_memories', encryptData(memories, user.password));
+                
+                return true;
+            } catch (error) {
+                console.error('Save error:', error);
+                throw new Error('メモリーの保存に失敗しました');
+            }
+        }
+
+        // メモリー読み込み時の復号化
+        function loadMemoryFromStorage() {
+            try {
+                const user = window.userManager.getCurrentUser();
+                if (!user || !user.password) {
+                    throw new Error('認証情報が見つかりません');
+            }
+
+                // 暗号化されたデータを取得
+                const encryptedMemories = window.userManager.getUserData('encrypted_memories');
+                if (!encryptedMemories) return [];
+
+                // データの復号化
+                return encryptedMemories.map(item => {
+                    const decryptedData = decryptData(item.encryptedData, user.password);
+                    return {
+                        ...decryptedData,
+                        id: item.id,
+                        timestamp: item.timestamp
+                    };
+                });
+            } catch (error) {
+                console.error('Load error:', error);
+                throw new Error('メモリーの読み込みに失敗しました');
+            }
+        }
+
+        // メモリーの削除
+        function deleteMemory(memoryId) {
+            if (!confirm('このメモリーを削除してもよろしいですか？')) {
+                return;
+            }
+
+            try {
+                // メモリー配列から削除
+                memories = memories.filter(m => m.id !== memoryId);
+                
+                // LocalStorageに保存
+                localStorage.setItem('ragme_memories', JSON.stringify(memories));
+                
+                // UIを更新
+                filteredMemories = memories.filter(m => {
+                    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                    const typeFilter = document.getElementById('typeFilter').value;
+                    
+                    return (!searchTerm || m.content.toLowerCase().includes(searchTerm)) &&
+                           (!typeFilter || m.type === typeFilter);
+                });
+                
+                renderMemories();
+                updateStorageInfo();
+                showToast('メモリーを削除しました', 'success');
+            } catch (error) {
+                console.error('❌ Delete error:', error);
+                showToast('削除中にエラーが発生しました', 'error');
+            }
+        }
+
+        // 選択したメモリーの削除
+        function deleteSelectedMemories() {
+            if (selectedMemories.size === 0) {
+                showToast('削除するメモリーを選択してください', 'warning');
+                return;
+            }
+
+            if (!confirm(`選択した${selectedMemories.size}件のメモリーを削除してもよろしいですか？`)) {
+                return;
+            }
+
+            try {
+                // 選択されたメモリーを削除
+                memories = memories.filter(m => !selectedMemories.has(m.id));
+                
+                // LocalStorageに保存
+                localStorage.setItem('ragme_memories', JSON.stringify(memories));
+                
+                // UIを更新
+                filteredMemories = [...memories];
+                renderMemories();
+                updateStorageInfo();
+                showToast(`${selectedMemories.size}件のメモリーを削除しました`, 'success');
+            } catch (error) {
+                console.error('❌ Batch delete error:', error);
+                showToast('削除中にエラーが発生しました', 'error');
+            }
+        }
+
+        // 暗号化関連の関数
+        function encryptData(data, password) {
+            try {
+                const encryptedData = CryptoJS.AES.encrypt(JSON.stringify(data), password).toString();
+                return encryptedData;
+            } catch (error) {
+                console.error('Encryption error:', error);
+                throw new Error('暗号化に失敗しました');
+            }
+        }
+
+        function decryptData(encryptedData, password) {
+            try {
+                const decrypted = CryptoJS.AES.decrypt(encryptedData, password);
+                return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
+            } catch (error) {
+                console.error('Decryption error:', error);
+                throw new Error('復号化に失敗しました');
+            }
+        }
+
+        // ストレージ情報の更新
+        function updateStorageInfo() {
+            console.log('📊 Updating storage info...');
+            
+            try {
+                // メモリーデータの取得
+                const totalMemories = memories.length;
+                const voiceMemories = memories.filter(m => m.type === 'voice-transcription').length;
+                const textMemories = memories.filter(m => m.type === 'text-input').length;
+                const totalChars = memories.reduce((sum, m) => sum + (m.content?.length || 0), 0);
+                
+                // ストレージ使用量の計算
+                const storageSize = new Blob([JSON.stringify(memories)]).size;
+                const usageInKB = (storageSize / 1024).toFixed(2);
+                
+                // 表示の更新
+                document.getElementById('totalMemories').textContent = totalMemories;
+                document.getElementById('voiceMemories').textContent = voiceMemories;
+                document.getElementById('textMemories').textContent = textMemories;
+                document.getElementById('totalChars').textContent = totalChars.toLocaleString();
+                document.getElementById('storageUsage').textContent = `${usageInKB} KB`;
+                
+                console.log('✅ Storage info updated');
+                
+            } catch (error) {
+                console.error('❌ Error updating storage info:', error);
+                showToast('❌ ストレージ情報の更新に失敗しました', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="RAGme" content="width=device-width, initial-scale=1.0">
+    <title>RAGme - 行動・意識の蓄積OS</title>
+    
+    <!-- データ削除スクリプト -->
+    <script src="clear-data.js"></script>
+    
+    <!-- ストレージマネージャー -->
+    <script src="storage-manager.js"></script>
+    
+    <!-- ユーザー管理システム - 最初に読み込み -->
+    <script src="user-manager.js"></script>
+    
+    <!-- ナビゲーション管理 -->
+    <script src="navigation.js"></script>
+    
+    <!-- 音声認識システム -->
+    <script src="js/voice/recognition.js"></script>
+    <script src="js/voice/recorder.js"></script>
+    <script src="js/voice/transcription.js"></script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Complete standalone styles for RAGme */
+        :root {
+            --primary: #20b2aa;
+            --primary-dark: #16a085;
+            --secondary: #48d1cc;
+            --accent: #06d6a0;
+            --accent-dark: #05b08a;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-tertiary: #16213e;
+            --bg-card: rgba(255, 255, 255, 0.05);
+            --bg-glass: rgba(255, 255, 255, 0.1);
+            
+            --text-primary: #ffffff;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            
+            --border: rgba(255, 255, 255, 0.1);
+            --border-focus: rgba(32, 178, 170, 0.5);
+            
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.4);
+            --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.5);
+            
+            --glow-primary: 0 0 20px rgba(32, 178, 170, 0.3);
+            --glow-accent: 0 0 20px rgba(6, 214, 160, 0.3);
+            --glow-success: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(32, 178, 170, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(72, 209, 204, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(6, 214, 160, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundShift {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        /* ログイン画面のスタイル */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .login-title {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .login-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            color: #333;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 15px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow-primary);
+        }
+
+        .toggle-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .toggle-link:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            display: none;
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .error-message:not(.hidden) {
+            display: block;
+        }
+
+        .success-message {
+            display: none;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .success-message:not(.hidden) {
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .nav-brand i {
+            font-size: 1.8rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            background: rgba(32, 178, 170, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            background: rgba(32, 178, 170, 0.2);
+            box-shadow: var(--glow-primary);
+        }
+
+        .nav-link i {
+            font-size: 1.1rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .username-display {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+            background: transparent;
+        }
+
+        .content-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .content-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .content-header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Tab System */
+        .tab-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+        }
+
+        .tab-nav {
+            display: flex;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            color: var(--primary);
+            background: rgba(32, 178, 170, 0.05);
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+            background: rgba(32, 178, 170, 0.1);
+        }
+
+        .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .tab-content {
+            padding: 2rem;
+            min-height: 500px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Voice Interface */
+        .voice-controls {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .voice-button {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #1a1a1a;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .voice-button:hover {
+            transform: scale(1.05);
+            box-shadow: var(--glow-primary);
+        }
+
+        .voice-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .voice-button.recording {
+            animation: pulse 1.5s infinite;
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .voice-status {
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Real-time Transcription Display */
+        .transcription-display {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            min-height: 150px;
+            max-height: 300px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .transcription-display.show {
+            display: block;
+        }
+
+        .transcription-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .transcription-title {
+            color: var(--primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .transcription-status {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .transcription-text {
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 1rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            min-height: 60px;
+        }
+
+        .transcription-text.interim {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        /* Transcription Actions */
+        .transcription-actions {
+            display: none;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .transcription-actions.show {
+            display: flex;
+        }
+
+        .transcription-edit {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .transcription-edit.show {
+            display: block;
+        }
+
+        .transcription-edit:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(32, 178, 170, 0.2);
+        }
+
+        /* Text Input Interface */
+        .text-input-container {
+            margin-bottom: 2rem;
+        }
+
+        .text-input-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .text-input-header h3 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .text-input-header p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .text-input-area {
+            width: 100%;
+            min-height: 300px;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: inherit;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        .text-input-area:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 2px rgba(32, 178, 170, 0.2);
+        }
+
+        .text-input-area::placeholder {
+            color: var(--text-muted);
+        }
+
+        .text-preview {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .preview-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-header h3 {
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+
+        .preview-content {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            min-height: 200px;
+            color: var(--text-primary);
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .chat-container {
+            height: 400px;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1rem;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #1a1a1a;
+        }
+
+        .message.ai {
+            align-self: flex-start;
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #1a1a1a;
+        }
+
+        .btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow-primary);
+        }
+
+        .btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
+        }
+
+        .btn.danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn.success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+        }
+
+        .btn.success:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glow-success);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(26, 26, 46, 0.95);
+            color: var(--text-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            z-index: 10000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            min-width: 300px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-color: var(--success);
+        }
+
+        .toast.error {
+            border-color: var(--danger);
+        }
+
+        .toast.warning {
+            border-color: var(--warning);
+        }
+
+        .toast.info {
+            border-color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+            
+            .nav-menu {
+                gap: 0.5rem;
+            }
+            
+            .nav-link span {
+                display: none;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .content-header h1 {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .tab-container {
+                margin: 0;
+            }
+            
+            .tab-nav {
+                flex-direction: row;
+            }
+            
+            .tab-button {
+                padding: 1rem;
+                font-size: 1rem;
+            }
+            
+            .tab-content {
+                padding: 1rem;
+            }
+            
+            .voice-button {
+                width: 100px;
+                height: 100px;
+                font-size: 1.5rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .transcription-actions {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-link {
+                padding: 0.5rem;
+                min-width: 40px;
+                justify-content: center;
+            }
+            
+            .content-header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .tab-button span {
+                display: none;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        /* ページ遷移のスタイル追加 */
+        .page-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .page-transition.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 初期表示を制御するスタイルを追加 */
+        #loginScreen {
+            display: flex;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        #mainScreen {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #loginScreen.hidden {
+            display: none;
+            opacity: 0;
+        }
+
+        #mainScreen.visible {
+            opacity: 1;
+        }
+
+        /* メインコンテンツのスタイル */
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+            background: transparent;
+        }
+
+        .mic-status {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        .mic-status-content {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: var(--surface-dark);
+            border: 1px solid var(--border);
+        }
+        
+        .mic-status-content.success {
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .mic-status-content.warning {
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .mic-status-content.error {
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .mic-help-btn {
+            margin-left: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        
+        .mic-help-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .mic-instructions.modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .mic-instructions .modal-content {
+            background: var(--surface-dark);
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .mic-instructions h3 {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+        }
+        
+        .instruction-steps {
+            margin-bottom: 1.5rem;
+        }
+        
+        .instruction-steps p {
+            margin: 0.5rem 0;
+            line-height: 1.5;
+        }
+        
+        .close-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            background: var(--primary-hover);
+        }
+    </style>
+
+<!-- 既存の <head> タグの中に追加 -->
+
+<!-- PWA対応メタタグ -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#20b2aa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RAGme">
+
+<!-- アイコン -->
+<link rel="icon" href="icons/icon-192x192.png">
+<link rel="apple-touch-icon" href="icons/icon-192x192.png">
+
+<!-- PWA マニフェスト -->
+<link rel="manifest" href="manifest.json">
+
+</head>
+
+<!-- </body> タグの直前に追加 -->
+
+<script>
+    // Service Worker登録
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('✅ Service Worker registered');
+          })
+          .catch((error) => {
+            console.log('❌ Service Worker registration failed:', error);
+          });
+      });
+    }
+    
+    // PWAインストール促進
+    let deferredPrompt;
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      
+      // インストールボタンを表示（オプション）
+      console.log('📱 PWA install available');
+    });
+    
+    // オフライン/オンライン状態の表示
+    window.addEventListener('online', () => {
+      console.log('🌐 オンラインです');
+    });
+    
+    window.addEventListener('offline', () => {
+      console.log('📴 オフラインです');
+    });
+    </script>
+
+<body>
+    <!-- ページ遷移用のオーバーレイ -->
+    <div class="page-transition" id="pageTransition"></div>
+    
+    <!-- 即時認証チェックスクリプト -->
+    <script>
+        // 即時実行認証チェック
+        (function() {
+            // 現在のページがログインページかどうかをチェック
+            const isLoginPage = window.location.pathname.endsWith('index.html') || 
+                              window.location.pathname.endsWith('/');
+
+            // 認証状態を確認
+            const isAuthenticated = 
+                sessionStorage.getItem('authenticated') === 'true' ||
+                localStorage.getItem('authenticated') === 'true';
+
+            console.log('🔒 Auth check:', { isLoginPage, isAuthenticated });
+
+            if (!isAuthenticated && !isLoginPage) {
+                // 未認証でログインページ以外の場合はログインページにリダイレクト
+                window.location.href = 'index.html';
+                return;
+            }
+
+            if (isAuthenticated) {
+                // 認証済みの場合の処理
+                const loginScreen = document.getElementById('loginScreen');
+                const mainScreen = document.getElementById('mainScreen');
+                
+                if (loginScreen) loginScreen.style.display = 'none';
+                if (mainScreen) {
+                    mainScreen.style.display = 'block';
+                    mainScreen.classList.add('visible');
+                }
+
+                // ユーザー名を表示
+                const user = window.userManager && window.userManager.getCurrentUser();
+                const username = user ? user.username : sessionStorage.getItem('username');
+                if (username) {
+                    const usernameDisplay = document.getElementById('usernameDisplay');
+                    if (usernameDisplay) {
+                        usernameDisplay.textContent = username;
+                    }
+                }
+            } else if (isLoginPage) {
+                // 未認証でログインページの場合
+                const loginScreen = document.getElementById('loginScreen');
+                const mainScreen = document.getElementById('mainScreen');
+                
+                if (loginScreen) loginScreen.style.display = 'flex';
+                if (mainScreen) mainScreen.style.display = 'none';
+            }
+        })();
+    </script>
+
+    <!-- ログイン画面 -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-card">
+            <div class="login-logo">RAGme</div>
+            <h1 class="login-title">RAGme</h1>
+            <p class="login-subtitle">行動・意識の蓄積OS</p>
+            
+            <div id="errorMessage" class="error-message hidden"></div>
+            <div id="successMessage" class="success-message hidden"></div>
+            
+            <!-- ログインフォーム -->
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginUsername">ユーザー名 / メールアドレス</label>
+                    <input type="text" id="loginUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">パスワード</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="login-btn">ログイン</button>
+            </form>
+            
+            <p id="registerLink">アカウントをお持ちでない場合は <a href="#" class="toggle-link">新規登録</a></p>
+            
+            <!-- 新規登録フォーム -->
+            <form id="registerForm" class="hidden">
+                <div class="form-group">
+                    <label for="registerUsername">ユーザー名</label>
+                    <input type="text" id="registerUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">メールアドレス</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">パスワード</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">パスワード確認</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+                <button type="submit" class="login-btn">新規登録</button>
+            </form>
+            
+            <p id="loginLink" class="hidden">既にアカウントをお持ちの場合は <a href="#" class="toggle-link">ログイン</a></p>
+        </div>
+    </div>
+
+    <!-- メイン画面（ログイン後） -->
+    <div id="mainScreen">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-brand">
+                    <i class="fas fa-robot"></i>
+                    <span>RAGme</span>
+                </div>
+                <div class="nav-menu">
+                    <a href="index.html" class="nav-link active" data-page="home">
+                        <i class="fas fa-home"></i>
+                        <span>ホーム</span>
+                    </a>
+                    <a href="memory.html" class="nav-link" data-page="memory">
+                        <i class="fas fa-brain"></i>
+                        <span>メモリー</span>
+                    </a>
+                    <a href="analysis.html" class="nav-link" data-page="analysis">
+                        <i class="fas fa-chart-line"></i>
+                        <span>AI分析</span>
+                    </a>
+                    <a href="settings.html" class="nav-link" data-page="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>設定</span>
+                    </a>
+                    <div class="user-info">
+                        <span class="username-display" id="usernameDisplay"></span>
+                        <button class="logout-btn" onclick="logoutUser()">
+                            <i class="fas fa-sign-out-alt"></i> ログアウト
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1><i class="fas fa-robot"></i> 音声・テキスト入力</h1>
+                <p>日々の行動・意識などを書き留めるページ</p>
+            </div>
+
+            <div class="tab-container">
+                <!-- Tab Navigation -->
+                <div class="tab-nav">
+                    <button class="tab-button active" data-tab="voice">
+                        <i class="fas fa-microphone"></i>
+                        <span>音声入力</span>
+                    </button>
+                    <button class="tab-button" data-tab="text">
+                        <i class="fas fa-keyboard"></i>
+                        <span>テキスト入力</span>
+                    </button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Voice Tab -->
+                    <div class="tab-pane active" id="voice-tab">
+                        <div class="voice-controls">
+                            <button class="voice-button" id="voiceButton">
+                                <i class="fas fa-microphone" id="voiceIcon"></i>
+                            </button>
+                            <div class="voice-status" id="voiceStatus">マイクボタンをクリックして録音開始</div>
+                        </div>
+
+                        <!-- Real-time Transcription Display -->
+                        <div class="transcription-display" id="transcriptionDisplay">
+                            <div class="transcription-header">
+                                <div class="transcription-title">
+                                    <i class="fas fa-comment-dots"></i>
+                                    リアルタイム音声認識
+                                </div>
+                                <div class="transcription-status" id="transcriptionStatus">認識中...</div>
+                            </div>
+                            <div class="transcription-text" id="transcriptionText"></div>
+                        </div>
+
+                        <!-- Transcription Edit Area -->
+                        <textarea id="transcriptionEdit" class="transcription-edit" placeholder="認識されたテキストを編集してください..."></textarea>
+
+                        <!-- Transcription Actions -->
+                        <div class="transcription-actions" id="transcriptionActions">
+                            <button class="btn success" id="confirmTranscription">
+                                <i class="fas fa-check"></i>
+                                保存
+                            </button>
+                            <button class="btn secondary" id="editTranscription">
+                                <i class="fas fa-edit"></i>
+                                修正
+                            </button>
+                            <button class="btn danger" id="deleteTranscription">
+                                <i class="fas fa-trash"></i>
+                                削除
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Text Tab -->
+                    <div class="tab-pane" id="text-tab">
+                        <div class="text-input-container">
+                            <div class="text-input-header">
+                                <h3><i class="fas fa-edit"></i> テキスト入力</h3>
+                                <p>あなたの行動・思い、その時の状況などをできるだけ沢山書き出してください</p>
+                            </div>
+                            <textarea 
+                                id="textInput" 
+                                class="text-input-area" 
+                                placeholder="ここにテキストを入力してください...&#10;&#10;例：&#10;・今日の出来事&#10;・感じたこと&#10;・考えたこと&#10;・その時の状況"
+                                rows="15">
+                            </textarea>
+                        </div>
+
+                        <div class="text-preview" id="textPreview" style="display: none;">
+                            <div class="preview-header">
+                                <h3><i class="fas fa-eye"></i> 内容確認</h3>
+                            </div>
+                            <div class="preview-content" id="previewContent"></div>
+                            <div class="preview-actions">
+                                <button class="btn primary" id="saveTextButton">
+                                    <i class="fas fa-save"></i>
+                                    メモリーに保存
+                                </button>
+                                <button class="btn danger" id="deleteTextButton">
+                                    <i class="fas fa-trash"></i>
+                                    削除
+                                </button>
+                                <button class="btn secondary" id="editTextButton">
+                                    <i class="fas fa-edit"></i>
+                                    編集に戻る
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="controls">
+                            <button class="btn primary" id="previewTextButton">
+                                <i class="fas fa-eye"></i>
+                                内容確認
+                            </button>
+                            <button class="btn secondary" id="clearTextInput">
+                                <i class="fas fa-times"></i>
+                                クリア
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        'use strict';
+        
+        console.log('🚀 RAGme AI Hub Starting...');
+
+        // ===== 🌟 GLOBAL STATE =====
+        let isInitialized = false;
+        
+        // ===== 🎤 INITIALIZATION =====
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Initializing voice functionality...');
+            
+            // UserManagerの初期化を待つ
+            if (window.userManager) {
+                console.log('✅ UserManager found');
+                initializeVoice();
+            } else {
+                console.error('❌ UserManager not found');
+            }
+        });
+
+        function initializeVoice() {
+            const voiceButton = document.getElementById('voiceButton');
+            if (!voiceButton) {
+                console.error('❌ Voice button not found');
+                        return;
+                    }
+
+            // 音声認識の初期化
+            if (typeof RAGmeRecognition !== 'undefined' && RAGmeRecognition.initializeSpeechRecognition()) {
+                // トランスクリプションアクションの初期化
+                if (typeof RAGmeTranscription !== 'undefined') {
+                    RAGmeTranscription.initializeTranscriptionActions();
+                } else {
+                    console.error('❌ Transcription module not found');
+                        return;
+                    }
+
+                // ボタンイベントの設定
+                voiceButton.addEventListener('click', toggleRecording);
+                console.log('✅ Voice functionality initialized');
+                isInitialized = true;
+            } else {
+                console.error('❌ Speech recognition initialization failed');
+                voiceButton.disabled = true;
+                showToast('⚠️ このブラウザでは音声認識がサポートされていません', 'warning');
+            }
+        }
+
+        function toggleRecording() {
+            console.log('🎤 Toggle recording clicked');
+            
+            if (!isInitialized) {
+                console.error('❌ Voice functionality not initialized');
+                return;
+        }
+        
+            if (RAGmeRecorder.isRecording()) {
+                RAGmeRecorder.stopRecording();
+                } else {
+                RAGmeRecorder.startRecording();
+            }
+        }
+
+        // ===== 🎤 TRANSCRIPTION ACTIONS =====
+        function confirmTranscription() {
+            console.log('✅ Confirming transcription...');
+            
+            try {
+                let textToSave = '';
+                const editArea = document.getElementById('transcriptionEdit');
+                
+                if (editArea && editArea.classList.contains('show')) {
+                    textToSave = editArea.value.trim();
+                } else if (typeof RAGmeRecognition !== 'undefined') {
+                    textToSave = RAGmeRecognition.getFinalTranscript().trim();
+                }
+                
+                if (!textToSave) {
+                    showToast('⚠️ 保存するテキストがありません', 'warning');
+                    return;
+                }
+                
+                // StorageManagerを使用して保存
+                StorageManager.saveVoiceInput(textToSave);
+                
+                // UIのリセット
+                resetTranscriptionUI();
+                
+                showToast('✅ 音声入力を保存しました', 'success');
+                
+            } catch (error) {
+                console.error('❌ Save error:', error);
+                showToast('❌ 保存に失敗しました', 'error');
+            }
+        }
+        
+        function editTranscription() {
+            console.log('✏️ Editing transcription...');
+            
+            const editArea = document.getElementById('transcriptionEdit');
+            const transcriptionDisplay = document.getElementById('transcriptionDisplay');
+            const transcriptionText = document.getElementById('transcriptionText');
+            
+            if (!editArea || !transcriptionDisplay || !transcriptionText) {
+                console.error('❌ Required elements not found');
+                return;
+            }
+            
+            // 現在の認識テキストを編集エリアにコピー
+            editArea.value = transcriptionText.textContent.trim();
+            
+            // 表示の切り替え
+                transcriptionDisplay.classList.remove('show');
+            editArea.classList.add('show');
+            
+            // フォーカスを設定
+            editArea.focus();
+            
+            showToast('✏️ テキストを編集できます', 'info');
+        }
+        
+        function deleteTranscription() {
+            console.log('🗑️ Deleting transcription...');
+                resetTranscriptionUI();
+                showToast('🗑️ 音声認識結果を削除しました', 'info');
+        }
+        
+        function resetTranscriptionUI() {
+            const transcriptionDisplay = document.getElementById('transcriptionDisplay');
+            const transcriptionText = document.getElementById('transcriptionText');
+            const transcriptionStatus = document.getElementById('transcriptionStatus');
+            const actions = document.getElementById('transcriptionActions');
+            const editArea = document.getElementById('transcriptionEdit');
+            
+            if (transcriptionDisplay) transcriptionDisplay.classList.remove('show');
+            if (transcriptionText) transcriptionText.textContent = '';
+            if (transcriptionStatus) transcriptionStatus.textContent = '認識中...';
+            if (actions) actions.classList.remove('show');
+            if (editArea) {
+                editArea.classList.remove('show');
+                editArea.value = '';
+            }
+
+            if (typeof RAGmeRecognition !== 'undefined') {
+                RAGmeRecognition.resetRecognitionState();
+            }
+        }
+        
+        function displayTranscriptionMessage(entry) {
+            const container = document.getElementById('voiceChatMessages');
+            if (!container) return;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+            messageDiv.innerHTML = 
+                '<div style="margin-bottom: 0.5rem;">' +
+                '<i class="fas fa-microphone"></i> 音声入力（テキスト化済み）' +
+                '</div>' +
+                '<div style="font-size: 0.9rem;">' + escapeHtml(entry.content) + '</div>';
+            
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // ===== 🛠️ UTILITY FUNCTIONS =====
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+                }
+                
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function generateId() {
+            return 'id_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // フォーム切り替え機能
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const registerLink = document.getElementById('registerLink');
+            const loginLink = document.getElementById('loginLink');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+
+            // エラーメッセージを表示
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    errorMessage.classList.add('hidden');
+                }, 3000);
+            }
+
+            // 成功メッセージを表示
+            function showSuccess(message) {
+                successMessage.textContent = message;
+                successMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    successMessage.classList.add('hidden');
+                }, 3000);
+            }
+
+            // 新規登録フォームを表示
+            document.querySelector('#registerLink .toggle-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                registerLink.classList.add('hidden');
+                loginLink.classList.remove('hidden');
+            });
+                
+            // ログインフォームを表示
+            document.querySelector('#loginLink .toggle-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                loginLink.classList.add('hidden');
+                registerLink.classList.remove('hidden');
+            });
+
+            // 新規登録フォームの送信
+            registerForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const username = document.getElementById('registerUsername').value;
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (password !== confirmPassword) {
+                    showError('パスワードが一致しません');
+                    return;
+                }
+
+                try {
+                    // ユーザー登録を実行
+                    const user = window.userManager.registerUser(username, email, password);
+                    showSuccess('アカウントを作成しました');
+
+                    // 自動ログインを実行
+                    const loggedInUser = window.userManager.login(username, password);
+                    
+                    // 画面遷移の処理
+                    const loginScreen = document.getElementById('loginScreen');
+                    const mainScreen = document.getElementById('mainScreen');
+                    const usernameDisplay = document.getElementById('usernameDisplay');
+                    
+                    if (loginScreen && mainScreen) {
+                        loginScreen.style.display = 'none';
+                        mainScreen.style.display = 'block';
+                        mainScreen.classList.add('visible');
+                        
+                        if (usernameDisplay) {
+                            usernameDisplay.textContent = loggedInUser.username;
+                        }
+
+                        // セッション情報を保存
+                        sessionStorage.setItem('authenticated', 'true');
+                        sessionStorage.setItem('username', username);
+                        localStorage.setItem('authenticated', 'true');
+                        localStorage.setItem('username', username);
+                    } else {
+                        console.error('Required elements not found');
+                        showError('画面の初期化に失敗しました');
+                    }
+                } catch (error) {
+                    console.error('Registration/Login error:', error);
+                    showError(error.message || 'アカウント作成に失敗しました');
+                }
+            });
+
+            // ログインフォームの送信
+            loginForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const username = document.getElementById('loginUsername').value;
+                const password = document.getElementById('loginPassword').value;
+
+                try {
+                    // ログインを実行
+                    const user = window.userManager.login(username, password);
+                    showSuccess('ログインしました');
+                    
+                    // 認証情報を両方に保存
+                    sessionStorage.setItem('authenticated', 'true');
+                    sessionStorage.setItem('username', username);
+                    localStorage.setItem('authenticated', 'true');
+                    localStorage.setItem('username', username);
+
+                    // 画面遷移の処理
+                    const loginScreen = document.getElementById('loginScreen');
+                    const mainScreen = document.getElementById('mainScreen');
+                    const usernameDisplay = document.getElementById('usernameDisplay');
+            
+                    if (loginScreen && mainScreen) {
+                        loginScreen.style.display = 'none';
+                        mainScreen.style.display = 'block';
+                        mainScreen.classList.add('visible');
+                        
+                        if (usernameDisplay) {
+                            usernameDisplay.textContent = user.username;
+                        }
+                    } else {
+                        console.error('Required elements not found');
+                        showError('画面の初期化に失敗しました');
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showError(error.message || 'ログインに失敗しました');
+                }
+            });
+        });
+            
+        // ナビゲーション処理を更新
+        function navigateToPage(page) {
+            // Navigation モジュールの実装を使用
+            if (window.Navigation) {
+                window.Navigation.navigateToPage(page);
+                return;
+            }
+
+            // フォールバック: Navigation モジュールが利用できない場合
+            console.log(`📱 ${page}ページへ移動します`);
+            
+            // 認証状態を確認
+            if (!isAuthenticated()) {
+                console.log('🔒 認証されていません。ログインページへリダイレクトします。');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // 遷移先のURLを決定
+            let targetUrl;
+            switch (page) {
+                case 'home':
+                    targetUrl = 'index.html';
+                    break;
+                case 'memory':
+                    targetUrl = 'memory.html';
+                    break;
+                case 'analysis':
+                    targetUrl = 'analysis.html';
+                    break;
+                case 'settings':
+                    targetUrl = 'settings.html';
+                    break;
+                default:
+                    console.error('❌ 無効なページ指定です:', page);
+                    return;
+            }
+
+            // トランジションの開始
+            const pageTransition = document.getElementById('pageTransition');
+            if (pageTransition) {
+                pageTransition.classList.add('active');
+                setTimeout(() => {
+                    window.location.href = targetUrl;
+                }, 300);
+            } else {
+                window.location.href = targetUrl;
+            }
+        }
+
+        // ナビゲーションアニメーションを制御する関数
+        function startPageTransition(callback) {
+            const pageTransition = document.getElementById('pageTransition');
+            if (pageTransition) {
+                pageTransition.classList.add('active');
+                setTimeout(() => {
+                    callback();
+                }, 300);
+            } else {
+                callback();
+            }
+        }
+
+        // 現在のページをチェックする関数を更新
+        function isCurrentPage(page) {
+            const currentPath = window.location.pathname;
+            const fileName = currentPath.split('/').pop() || '';
+            
+            switch (page) {
+                case 'home':
+                    return fileName === 'index.html' || fileName === '';
+                case 'memory':
+                    return fileName === 'memory.html';
+                case 'analysis':
+                    return fileName === 'analysis.html';
+                case 'settings':
+                    return fileName === 'settings.html';
+                default:
+                    return false;
+            }
+        }
+
+        // 認証状態チェック関数を改善
+        function isAuthenticated() {
+            return sessionStorage.getItem('authenticated') === 'true' ||
+                   localStorage.getItem('authenticated') === 'true';
+        }
+
+        // ナビゲーションリンクのイベントリスナーを更新
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔄 ナビゲーションの初期化を開始します');
+            
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.getAttribute('data-page');
+                    
+                    console.log('🔗 クリックされたリンク:', page);
+                    
+                    // 現在のページと同じリンクをクリックした場合は何もしない
+                    if (isCurrentPage(page)) {
+                        console.log('📍 同じページなのでキャンセルします');
+                        return;
+                    }
+                    
+                    // アクティブ状態を更新
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // ページ遷移を実行
+                    navigateToPage(page);
+                });
+            });
+
+            // 現在のページに応じてナビゲーションの状態を更新
+            updateNavigationState();
+            console.log('✅ ナビゲーションの初期化が完了しました');
+        });
+
+        // ナビゲーションの状態を更新する関数
+        function updateNavigationState() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                const page = link.getAttribute('data-page');
+                if (isCurrentPage(page)) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        // ページ読み込み完了時の処理
+        window.addEventListener('load', function() {
+            // 認証状態に応じて適切な画面を表示
+            if (isAuthenticated()) {
+                const loginScreen = document.getElementById('loginScreen');
+                const mainScreen = document.getElementById('mainScreen');
+                
+                if (loginScreen) loginScreen.style.display = 'none';
+                if (mainScreen) {
+                    mainScreen.style.display = 'block';
+                    mainScreen.classList.add('visible');
+                }
+
+                // ユーザー名を表示
+                const user = window.userManager && window.userManager.getCurrentUser();
+                const username = user ? user.username : sessionStorage.getItem('username');
+                if (username) {
+                    const usernameDisplay = document.getElementById('usernameDisplay');
+                    if (usernameDisplay) {
+                        usernameDisplay.textContent = username;
+                    }
+                }
+
+                // ナビゲーションの状態を更新
+                updateNavigationState();
+            }
+        });
+
+        // ログアウト処理を改善
+        function logoutUser() {
+            console.log('🔒 ログアウトを実行します');
+            
+            if (window.userManager) {
+                window.userManager.logout();
+            }
+            
+            sessionStorage.removeItem('authenticated');
+            sessionStorage.removeItem('username');
+            localStorage.removeItem('authenticated');
+            localStorage.removeItem('username');
+            
+            window.location.href = 'index.html';
+        }
+
+        // タブ切り替え処理
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetTab = button.getAttribute('data-tab');
+                    
+                    // タブボタンのアクティブ状態を切り替え
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    
+                    // タブコンテンツの表示を切り替え
+                    tabPanes.forEach(pane => {
+                        if (pane.id === `${targetTab}-tab`) {
+                            pane.classList.add('active');
+                        } else {
+                            pane.classList.remove('active');
+                        }
+                    });
+                });
+            });
+
+            // テキスト入力の処理
+            const textInput = document.getElementById('textInput');
+            const previewTextButton = document.getElementById('previewTextButton');
+            const textPreview = document.getElementById('textPreview');
+            const previewContent = document.getElementById('previewContent');
+            const editTextButton = document.getElementById('editTextButton');
+            const clearTextInput = document.getElementById('clearTextInput');
+            const saveTextButton = document.getElementById('saveTextButton');
+            const deleteTextButton = document.getElementById('deleteTextButton');
+
+            if (previewTextButton) {
+                previewTextButton.addEventListener('click', () => {
+                    const text = textInput.value.trim();
+                    if (!text) {
+                        showToast('⚠️ プレビューするテキストがありません', 'warning');
+                        return;
+                    }
+                    previewContent.textContent = text;
+                    textPreview.style.display = 'block';
+                    textInput.style.display = 'none';
+                    previewTextButton.style.display = 'none';
+                    clearTextInput.style.display = 'none';
+                });
+            }
+
+            if (editTextButton) {
+                editTextButton.addEventListener('click', () => {
+                    textPreview.style.display = 'none';
+                    textInput.style.display = 'block';
+                    previewTextButton.style.display = 'inline-block';
+                    clearTextInput.style.display = 'inline-block';
+                });
+            }
+
+            if (clearTextInput) {
+                clearTextInput.addEventListener('click', () => {
+                    if (confirm('入力内容をクリアしてもよろしいですか？')) {
+                        textInput.value = '';
+                        showToast('✨ テキストをクリアしました', 'info');
+                    }
+                });
+            }
+
+            if (saveTextButton) {
+                saveTextButton.addEventListener('click', () => {
+                    const text = textInput.value.trim();
+                    if (!text) {
+                        showToast('⚠️ 保存するテキストがありません', 'warning');
+                        return;
+                    }
+                    
+                    try {
+                        // StorageManagerを使用して保存
+                        StorageManager.saveTextInput(text);
+
+                        // UIをリセット
+                        textInput.value = '';
+                        textPreview.style.display = 'none';
+                        textInput.style.display = 'block';
+                        previewTextButton.style.display = 'inline-block';
+                        clearTextInput.style.display = 'inline-block';
+
+                        showToast('✅ テキストを保存しました', 'success');
+                    } catch (error) {
+                        console.error('❌ Save error:', error);
+                        showToast('❌ 保存に失敗しました', 'error');
+                    }
+                });
+            }
+
+            if (deleteTextButton) {
+                deleteTextButton.addEventListener('click', () => {
+                    if (confirm('入力内容を削除してもよろしいですか？')) {
+                        textInput.value = '';
+                        textPreview.style.display = 'none';
+                        textInput.style.display = 'block';
+                        previewTextButton.style.display = 'inline-block';
+                        clearTextInput.style.display = 'inline-block';
+                        showToast('🗑️ テキストを削除しました', 'info');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
