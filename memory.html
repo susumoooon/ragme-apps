@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RAGme - メモリー管理</title>
     
+    <!-- テーマ管理システム -->
+    <script src="theme-manager.js"></script>
+    
     <!-- ナビゲーション管理 -->
     <script src="navigation.js"></script>
     
@@ -20,6 +23,10 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
         :root {
@@ -29,6 +36,8 @@
             --success-color: #20b2aa;
             --warning-color: #f59e0b;
             --danger-color: #ef4444;
+            
+            /* ダークモード */
             --background-dark: #0f0f23;
             --surface-dark: #1a1a2e;
             --surface-light: #16213e;
@@ -40,6 +49,21 @@
             --bg-tertiary: rgba(30, 41, 59, 0.95);
             --bg-glass: rgba(30, 41, 59, 0.95);
             --border: rgba(255, 255, 255, 0.1);
+        }
+
+        /* ライトモード */
+        :root.light-mode {
+            --background-dark: #f8fafc;
+            --surface-dark: #ffffff;
+            --surface-light: #f1f5f9;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --accent-cyan: #20b2aa;
+            --bg-secondary: rgba(255, 255, 255, 0.95);
+            --bg-tertiary: rgba(255, 255, 255, 0.95);
+            --bg-glass: rgba(255, 255, 255, 0.95);
+            --border: rgba(0, 0, 0, 0.1);
         }
 
         body {
@@ -82,6 +106,18 @@
             z-index: 100;
         }
 
+        :root.light-mode .header {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        :root.light-mode .nav-link:hover {
+            background: rgba(32, 178, 170, 0.1);
+        }
+
+        :root.light-mode .nav-link.active {
+            background: rgba(32, 178, 170, 0.15);
+        }
+
         .nav {
             display: flex;
             align-items: center;
@@ -121,6 +157,11 @@
             border-radius: 0.5rem;
             transition: all 0.3s ease;
             font-weight: 500;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .nav-link:hover {
@@ -153,6 +194,11 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 0.9rem;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .logout-btn:hover {
@@ -216,6 +262,11 @@
             border-radius: 0.75rem;
             color: var(--text-primary);
             font-size: 1rem;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .search-input::placeholder {
@@ -235,6 +286,11 @@
             background: rgba(32, 178, 170, 0.05);
             color: var(--accent-cyan);
             backdrop-filter: blur(10px);
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .search-btn:hover {
@@ -288,6 +344,11 @@
             gap: 0.5rem;
             margin-left: auto;
             backdrop-filter: blur(10px);
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .export-btn:hover {
@@ -343,6 +404,11 @@
             top: 0;
             background: var(--bg-tertiary);
             z-index: 10;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .memory-table td {
@@ -350,6 +416,11 @@
             border-bottom: 1px solid rgba(71, 85, 105, 0.3);
             color: var(--text-secondary);
             vertical-align: top;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .memory-table tbody tr {
@@ -391,6 +462,11 @@
             overflow: hidden;
             text-overflow: ellipsis;
             line-height: 1.4;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .content-full {
@@ -398,6 +474,11 @@
             word-wrap: break-word;
             white-space: pre-wrap;
             line-height: 1.4;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .date-cell {
@@ -685,6 +766,11 @@
             line-height: 1.6;
             resize: vertical;
             transition: all 0.3s ease;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .edit-textarea:focus {
@@ -953,6 +1039,11 @@
             text-decoration: none;
             transition: all 0.3s ease;
             font-weight: 500;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .nav-link:hover {
@@ -991,6 +1082,11 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 0.9rem;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .logout-btn:hover {
@@ -998,37 +1094,138 @@
             color: white;
         }
 
-        /* ハンバーガーメニュー */
+        /* ハンバーガーメニュー（AI分析スタイル準拠） */
         .hamburger-menu {
             display: none;
-            cursor: pointer;
-            padding: 0.5rem;
-            border: none;
-            background: none;
-            color: var(--text-primary);
         }
 
+        /* スマホ対応 (375px以下) */
+        @media (max-width: 375px) {
+            .nav-menu {
+                display: none;
+                position: fixed;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: var(--bg-secondary);
+                border-top: 1px solid var(--border);
+                z-index: 999;
+                flex-direction: column;
+                padding: 1rem 0;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+            
+            .nav-menu.active {
+                display: flex;
+            }
+            
+            .nav-menu .nav-link {
+                width: 100%;
+                padding: 1rem 2rem;
+                justify-content: flex-start;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .nav-menu .nav-link span {
+                display: inline;
+            }
+            
+            .hamburger-menu {
+                display: flex;
+                flex-direction: column;
+                cursor: pointer;
+                padding: 0.5rem;
+                gap: 3px;
+            }
+            
+            .hamburger-line {
+                width: 25px;
+                height: 3px;
+                background: var(--accent-cyan);
+                transition: all 0.3s ease;
+                border-radius: 2px;
+            }
+            
+            .hamburger-menu.active .hamburger-line:nth-child(1) {
+                transform: rotate(45deg) translate(6px, 6px);
+            }
+            
+            .hamburger-menu.active .hamburger-line:nth-child(2) {
+                opacity: 0;
+            }
+            
+            .hamburger-menu.active .hamburger-line:nth-child(3) {
+                transform: rotate(-45deg) translate(6px, -6px);
+            }
+        }
+
+        /* 旧モバイルメニュースタイルを削除 */
         .mobile-menu {
             display: none;
-            position: fixed;
-            top: 70px;
-            right: 1rem;
-            background: var(--bg-glass);
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            backdrop-filter: blur(20px);
-            padding: 1rem;
-            z-index: 1000;
-        }
-
-        .mobile-menu.show {
-            display: block;
-            animation: slideIn 0.3s ease;
         }
 
         @keyframes slideIn {
             from { transform: translateY(-10px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* エクスポートモーダルのスタイル */
+        .export-options {
+            display: grid;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .export-option {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .export-option:hover {
+            background: rgba(32, 178, 170, 0.1);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(32, 178, 170, 0.2);
+        }
+
+        .option-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background: var(--primary-color);
+            border-radius: 12px;
+            color: var(--background-dark);
+        }
+
+        .option-icon i {
+            font-size: 1.5rem;
+        }
+
+        .option-content h3 {
+            color: var(--text-primary);
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        .option-content p {
+            color: var(--text-secondary);
+            margin: 0 0 0.25rem 0;
+            font-size: 0.95rem;
+        }
+
+        .option-content small {
+            color: var(--text-secondary);
+            opacity: 0.8;
+            font-size: 0.85rem;
         }
 
         /* レスポンシブデザインの更新 */
@@ -1059,6 +1256,402 @@
                 padding: 0.5rem;
                 min-width: 40px;
                 justify-content: center;
+            }
+        }
+
+        /* 375px以下のモバイル対応 */
+        @media (max-width: 375px) {
+            /* ナビゲーション調整 */
+            .nav-container {
+                padding: 0 0.5rem;
+            }
+            
+            .nav-brand {
+                font-size: 1.2rem;
+            }
+            
+            .nav-brand i {
+                font-size: 1.4rem;
+            }
+            
+            .nav-menu {
+                display: none;
+            }
+            
+            .hamburger-menu {
+                display: block;
+                padding: 0.25rem;
+            }
+            
+            .mobile-menu {
+                right: 0.5rem;
+                width: calc(100vw - 1rem);
+                max-width: 280px;
+            }
+
+            /* コンテナとページヘッダー */
+            .container {
+                padding: 0.5rem;
+                margin-top: 10px;
+            }
+            
+            .page-header {
+                margin-bottom: 1.5rem;
+                margin-top: 1rem;
+            }
+            
+            .page-title {
+                font-size: 1.5rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .page-title i {
+                font-size: 2rem;
+            }
+            
+            .page-subtitle {
+                font-size: 0.9rem;
+            }
+
+            /* 検索とフィルター */
+            .memory-controls {
+                flex-direction: column;
+                gap: 0.75rem;
+                margin-bottom: 1rem;
+            }
+            
+            .search-container {
+                width: 100%;
+            }
+            
+            .search-input {
+                font-size: 0.9rem;
+                padding: 0.6rem 0.8rem;
+            }
+            
+            .filter-container {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .filter-select {
+                font-size: 0.85rem;
+                padding: 0.5rem;
+                min-width: 80px;
+                flex: 1;
+                margin-right: 0.5rem;
+            }
+            
+            .stats-info {
+                flex-direction: column;
+                gap: 0.5rem;
+                padding: 0.75rem;
+                text-align: center;
+            }
+            
+            .stats-item {
+                font-size: 0.8rem;
+            }
+            
+            .stats-number {
+                font-size: 1rem;
+            }
+
+            /* スマホ用カード型レイアウト */
+            .memory-table-container {
+                overflow: visible;
+            }
+            
+            .memory-table {
+                display: none; /* テーブルを非表示 */
+            }
+            
+            /* スマホ用メモリーカード */
+            .mobile-memory-list {
+                display: block;
+                width: 100%;
+            }
+            
+            .memory-card {
+                display: flex;
+                align-items: center;
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: 8px;
+                padding: 0.75rem;
+                margin-bottom: 0.5rem;
+                transition: all 0.2s ease;
+                min-height: 60px;
+            }
+            
+            .memory-card:hover {
+                background: var(--bg-glass);
+                border-color: var(--primary);
+                transform: translateY(-1px);
+            }
+            
+            .memory-card.selected {
+                background: var(--bg-glass);
+                border-color: var(--primary);
+            }
+            
+            /* カード内のタイプアイコン */
+            .card-type {
+                flex: 0 0 32px;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.9rem;
+                margin-right: 0.75rem;
+            }
+            
+            .card-type.text-input {
+                background: rgba(32, 178, 170, 0.2);
+                color: var(--primary);
+            }
+            
+            .card-type.voice-transcription {
+                background: rgba(147, 51, 234, 0.2);
+                color: #a855f7;
+            }
+            
+            /* カード内容エリア */
+            .card-content {
+                flex: 1;
+                min-width: 0;
+                display: flex;
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+            
+            /* カード上部（日付と内容プレビュー） */
+            .card-main {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                width: 100%;
+            }
+            
+            .card-date {
+                flex: 0 0 auto;
+                font-size: 0.7rem;
+                color: var(--text-muted);
+                white-space: nowrap;
+                font-weight: 500;
+            }
+            
+            .card-preview {
+                flex: 1;
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                min-width: 0;
+            }
+            
+            /* カード下部（サイズ情報） */
+            .card-size {
+                font-size: 0.65rem;
+                color: var(--text-muted);
+                white-space: nowrap;
+            }
+            
+            /* カードアクションボタン */
+            .card-actions {
+                flex: 0 0 auto;
+                display: flex;
+                gap: 0.25rem;
+                margin-left: 0.5rem;
+            }
+            
+            .card-action-btn {
+                width: 28px;
+                height: 28px;
+                border: none;
+                border-radius: 6px;
+                background: rgba(255, 255, 255, 0.1);
+                color: var(--text-secondary);
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.8rem;
+                padding: 0;
+            }
+            
+            .card-action-btn:hover {
+                background: var(--primary);
+                color: #1a1a1a;
+                transform: scale(1.1);
+            }
+            
+            .card-action-btn.view {
+                background: rgba(32, 178, 170, 0.2);
+                color: var(--primary);
+            }
+            
+            .card-action-btn.edit {
+                background: rgba(251, 191, 36, 0.2);
+                color: #fbbf24;
+            }
+            
+            .card-action-btn.delete {
+                background: rgba(239, 68, 68, 0.2);
+                color: #ef4444;
+            }
+
+            /* ページネーション */
+            .pagination {
+                padding: 0.75rem;
+                flex-direction: column;
+                gap: 0.75rem;
+                text-align: center;
+            }
+            
+            .page-info {
+                font-size: 0.8rem;
+                order: 2;
+            }
+            
+            .page-controls {
+                order: 1;
+                justify-content: center;
+                gap: 0.25rem;
+            }
+            
+            .page-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+            
+            #currentPageInfo {
+                padding: 0.4rem 0.8rem;
+                background: var(--surface-light);
+                border-radius: 0.5rem;
+                font-size: 0.8rem;
+                color: var(--text-primary);
+            }
+
+            /* モーダル */
+            .modal-content {
+                width: 95%;
+                padding: 1.5rem;
+                max-height: 85vh;
+            }
+            
+            .modal-title {
+                font-size: 1.2rem;
+            }
+            
+            .modal-close {
+                font-size: 1.2rem;
+            }
+            
+            .edit-textarea {
+                min-height: 150px;
+                padding: 0.75rem;
+                font-size: 0.9rem;
+            }
+            
+            .modal-btn {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .modal-btn.secondary {
+                order: 2;
+            }
+            
+            .modal-btn.primary {
+                order: 1;
+            }
+
+            /* エクスポートオプション */
+            .export-options {
+                gap: 0.75rem;
+            }
+            
+            .export-option {
+                padding: 1rem;
+                flex-direction: column;
+                text-align: center;
+                gap: 0.75rem;
+            }
+            
+            .option-icon {
+                width: 40px;
+                height: 40px;
+                margin: 0 auto;
+            }
+            
+            .option-icon i {
+                font-size: 1.2rem;
+            }
+            
+            .option-content h3 {
+                font-size: 1rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .option-content p {
+                font-size: 0.85rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .option-content small {
+                font-size: 0.75rem;
+            }
+
+            /* トースト通知 */
+            .toast {
+                bottom: 10px;
+                right: 10px;
+                left: 10px;
+                width: auto;
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+                text-align: center;
+            }
+
+            /* ユーティリティ */
+            .no-memories {
+                padding: 2rem 1rem;
+            }
+            
+            .no-memories i {
+                font-size: 2.5rem;
+            }
+            
+            .no-memories h3 {
+                font-size: 1.2rem;
+            }
+            
+            .no-memories p {
+                font-size: 0.9rem;
+            }
+
+            /* ナビゲーションの文字折り返し */
+            .nav-link {
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: normal;
+            }
+
+            .nav-menu .nav-link {
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: normal;
             }
         }
     </style>
@@ -1116,7 +1709,7 @@
                     <i class="fas fa-robot"></i>
                     <span>RAGme</span>
                 </div>
-                <div class="nav-menu">
+                <div class="nav-menu" id="navMenu">
                     <a href="index.html" class="nav-link" data-page="home">
                         <i class="fas fa-home"></i>
                         <span>ホーム</span>
@@ -1140,20 +1733,14 @@
                         </button>
                     </div>
                 </div>
-                <button class="hamburger-menu" id="hamburgerMenu">
-                    <i class="fas fa-bars"></i>
-                </button>
+            <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleMobileMenu()">
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+            </div>
             </div>
         </nav>
-        <!-- モバイルメニュー -->
-        <div class="mobile-menu" id="mobileMenu">
-            <div class="user-info" style="margin-bottom: 1rem;">
-                <span class="username-display" id="mobileUsernameDisplay"></span>
-                <button class="logout-btn" onclick="logoutUser()">
-                    <i class="fas fa-sign-out-alt"></i> ログアウト
-                </button>
-            </div>
-        </div>
+
     </header>
 
     <main class="container">
@@ -1262,6 +1849,12 @@
                     <!-- メモリー行はJavaScriptで動的に生成されます -->
                 </tbody>
             </table>
+            
+            <!-- スマホ用カード表示 -->
+            <div class="mobile-memory-list" id="mobileMemoryList" style="display: none;">
+                <!-- カードはJavaScriptで動的に生成されます -->
+            </div>
+            
             <div class="pagination" id="paginationContainer">
                 <div class="page-info" id="pageInfo">0件中 0-0件を表示</div>
                 <div class="page-controls">
@@ -1340,9 +1933,19 @@
         }
 
         // ログアウト
-        function logout() {
-            window.userManager.logout();
-            window.location.href = 'index.html';
+        function logoutUser() {
+            console.log('🚪 Logging out user...');
+            try {
+                if (window.userManager) {
+                    window.userManager.logout();
+                }
+                sessionStorage.clear();
+                localStorage.removeItem('currentUser');
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('❌ Logout error:', error);
+                window.location.href = 'index.html';
+            }
         }
 
         // イベントリスナーの設定
@@ -1379,59 +1982,42 @@
             console.log('✅ Event listeners setup complete');
         }
 
+        // ハンバーガーメニューの制御（AI分析スタイル準拠）
+        function toggleMobileMenu() {
+            const navMenu = document.getElementById('navMenu');
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            
+            navMenu.classList.toggle('active');
+            hamburgerMenu.classList.toggle('active');
+        }
+
+        // メニュー外クリックで閉じる
+        function initializeMenuClosing() {
+            document.addEventListener('click', function(e) {
+                const navMenu = document.getElementById('navMenu');
+                const hamburgerMenu = document.getElementById('hamburgerMenu');
+                
+                if (!hamburgerMenu.contains(e.target) && !navMenu.contains(e.target)) {
+                    navMenu.classList.remove('active');
+                    hamburgerMenu.classList.remove('active');
+                }
+            });
+
+            // ナビゲーションリンククリック時にメニューを閉じる
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    const navMenu = document.getElementById('navMenu');
+                    const hamburgerMenu = document.getElementById('hamburgerMenu');
+                    navMenu.classList.remove('active');
+                    hamburgerMenu.classList.remove('active');
+                });
+            });
+        }
+
         // ページ読み込み時の初期化処理
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Initializing Memory Manager...');
-            
-            try {
-                // 認証チェック
-                if (!isAuthenticated()) {
-                    console.log('🔒 User not authenticated, redirecting...');
-                    window.location.href = 'index.html';
-                    return;
-                }
-
-                // ユーザー名を表示
-                const user = window.userManager && window.userManager.getCurrentUser();
-                if (user) {
-                    const usernameDisplay = document.getElementById('usernameDisplay');
-                    const mobileUsernameDisplay = document.getElementById('mobileUsernameDisplay');
-                    if (usernameDisplay) {
-                        usernameDisplay.textContent = user.username;
-                    }
-                    if (mobileUsernameDisplay) {
-                        mobileUsernameDisplay.textContent = user.username;
-                    }
-                }
-
-                // ハンバーガーメニューの設定
-                const hamburgerMenu = document.getElementById('hamburgerMenu');
-                const mobileMenu = document.getElementById('mobileMenu');
-                
-                if (hamburgerMenu && mobileMenu) {
-                    hamburgerMenu.addEventListener('click', function() {
-                        mobileMenu.classList.toggle('show');
-                    });
-
-                    // メニュー外クリックで閉じる
-                    document.addEventListener('click', function(event) {
-                        if (!hamburgerMenu.contains(event.target) && 
-                            !mobileMenu.contains(event.target)) {
-                            mobileMenu.classList.remove('show');
-                        }
-                    });
-                }
-
-                // イベントリスナーの設定
-                setupEventListeners();
-
-                // メモリーデータの読み込みと表示
-                loadMemories();
-
-            } catch (error) {
-                console.error('❌ Initialization error:', error);
-                showToast('初期化中にエラーが発生しました', 'error');
-            }
+            initializePage();
         });
 
         // メモリーデータの読み込みと表示
@@ -1568,21 +2154,22 @@
             }
         }
 
-        // メモリーの表示更新
+        // メモリー表示の描画
         function renderMemories() {
-            const tableBody = document.getElementById('memoryTableBody');
-            if (!tableBody) {
-                console.error('❌ Table body element not found');
-                return;
-            }
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageMemories = filteredMemories.slice(startIndex, endIndex);
 
-            if (filteredMemories.length === 0) {
+            const tableBody = document.getElementById('memoryTableBody');
+            if (!tableBody) return;
+
+            if (pageMemories.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
                         <td colspan="6" class="no-memories">
                             <i class="fas fa-brain"></i>
-                            <h3>メモリーがありません</h3>
-                            <p>音声やテキストを入力して、最初のメモリーを作成してください</p>
+                            <h3>メモリーが見つかりません</h3>
+                            <p>条件に一致するメモリーがありません。</p>
                         </td>
                     </tr>
                 `;
@@ -1590,23 +2177,20 @@
                 return;
             }
 
-            // ページネーション計算
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, filteredMemories.length);
-            const currentPageMemories = filteredMemories.slice(startIndex, endIndex);
-
-            // テーブル行の生成
-            const tableHTML = currentPageMemories.map(memory => {
+            const tableHTML = pageMemories.map(memory => {
+                const isSelected = selectedMemories.has(memory.id);
                 const isExpanded = expandedRows.has(memory.id);
+                
                 return `
-                    <tr class="memory-row ${selectedMemories.has(memory.id) ? 'selected' : ''}" data-id="${memory.id}">
+                    <tr class="memory-row ${isSelected ? 'selected' : ''}" data-memory-id="${memory.id}">
                         <td>
-                            <input type="checkbox" class="row-checkbox" data-id="${memory.id}" 
-                                   ${selectedMemories.has(memory.id) ? 'checked' : ''}>
+                            <input type="checkbox" class="row-checkbox" 
+                                   data-memory-id="${memory.id}" 
+                                   ${isSelected ? 'checked' : ''}>
                         </td>
                         <td>
                             <span class="type-badge ${memory.type}">
-                                <i class="fas fa-${memory.type === 'text-input' ? 'keyboard' : 'microphone'}"></i>
+                                <i class="fas ${memory.type === 'text-input' ? 'fa-keyboard' : 'fa-microphone'}"></i>
                             </span>
                         </td>
                         <td>
@@ -1638,10 +2222,160 @@
 
             tableBody.innerHTML = tableHTML;
 
+            // スマホ用カード表示も更新
+            renderMobileCards(pageMemories);
+
             // イベントリスナーの再設定
             setupTableEventListeners();
             updatePagination();
             updateSelectionInfo();
+        }
+
+        // スマホ用カード表示の描画
+        function renderMobileCards(pageMemories) {
+            const mobileList = document.getElementById('mobileMemoryList');
+            if (!mobileList) return;
+
+            if (pageMemories.length === 0) {
+                mobileList.innerHTML = `
+                    <div class="no-memories">
+                        <i class="fas fa-brain"></i>
+                        <h3>メモリーが見つかりません</h3>
+                        <p>条件に一致するメモリーがありません。</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const cardsHTML = pageMemories.map(memory => {
+                const isSelected = selectedMemories.has(memory.id);
+                const typeIcon = memory.type === 'text-input' ? 'fa-keyboard' : 'fa-microphone';
+                const preview = (memory.content || '').length > 60 
+                    ? (memory.content || '').substring(0, 60) + '...' 
+                    : (memory.content || '');
+                
+                return `
+                    <div class="memory-card ${isSelected ? 'selected' : ''}" data-memory-id="${memory.id}">
+                        <div class="card-type ${memory.type}">
+                            <i class="fas ${typeIcon}"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-main">
+                                <span class="card-date">${formatDateShort(memory.timestamp)}</span>
+                                <span class="card-preview">${escapeHtml(preview)}</span>
+                            </div>
+                            <div class="card-size">${memory.size || '0文字'}</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-action-btn view" onclick="viewMemoryDetails('${memory.id}')" title="詳細">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="card-action-btn edit" onclick="editMemory('${memory.id}')" title="編集">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="card-action-btn delete" onclick="deleteMemory('${memory.id}')" title="削除">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            mobileList.innerHTML = cardsHTML;
+
+            // カードクリックイベントの設定
+            setupMobileCardListeners();
+        }
+
+        // スマホカードのイベントリスナー設定
+        function setupMobileCardListeners() {
+            document.querySelectorAll('.memory-card').forEach(card => {
+                // カード全体のクリックで選択/選択解除
+                card.addEventListener('click', (e) => {
+                    // ボタンクリック時は除外
+                    if (e.target.closest('.card-action-btn')) {
+                        return;
+                    }
+                    
+                    const memoryId = card.dataset.memoryId;
+                    if (selectedMemories.has(memoryId)) {
+                        selectedMemories.delete(memoryId);
+                        card.classList.remove('selected');
+                    } else {
+                        selectedMemories.add(memoryId);
+                        card.classList.add('selected');
+                    }
+                    
+                    updateSelectionInfo();
+                });
+            });
+        }
+
+        // メモリー詳細表示（スマホ用）
+        function viewMemoryDetails(memoryId) {
+            const memory = memories.find(m => m.id === memoryId);
+            if (!memory) return;
+            
+            // 詳細表示用のモーダルを作成
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title">
+                            <i class="fas ${memory.type === 'text-input' ? 'fa-keyboard' : 'fa-microphone'}"></i>
+                            メモリー詳細
+                        </h2>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label class="form-label">タイプ</label>
+                            <div class="memory-type">
+                                <span class="type-badge ${memory.type}">
+                                    <i class="fas ${memory.type === 'text-input' ? 'fa-keyboard' : 'fa-microphone'}"></i>
+                                </span>
+                                ${memory.type === 'text-input' ? 'テキスト入力' : '音声入力'}
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">作成日時</label>
+                            <div class="memory-date">${new Date(memory.timestamp).toLocaleString('ja-JP')}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">文字数</label>
+                            <div class="memory-size">${memory.size || '0文字'}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">内容</label>
+                            <div class="memory-content" style="background: var(--bg-card); padding: 1rem; border-radius: 8px; white-space: pre-wrap; max-height: 300px; overflow-y: auto;">
+                                ${escapeHtml(memory.content || '')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="modal-btn secondary" onclick="this.closest('.modal-overlay').remove()">
+                            <i class="fas fa-times"></i>
+                            閉じる
+                        </button>
+                        <button class="modal-btn primary" onclick="copyMemory('${memory.id}'); this.closest('.modal-overlay').remove();">
+                            <i class="fas fa-copy"></i>
+                            コピー
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // モーダル外クリックで閉じる
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
         }
 
         // テーブルのイベントリスナー設定
@@ -1962,12 +2696,14 @@
             };
         }
 
-        // イベントリスナーの設定
-        document.addEventListener('DOMContentLoaded', function() {
+        // ナビゲーションの初期化
+        function initializeNavigation() {
+            console.log('🧭 Initializing navigation...');
+            
             // 現在のページに基づいてヘッダーを更新
             updateHeaderState();
             
-            // 全てのナビゲーションリンクを取得
+            // 全てのナビゲーションリンクを取得（デスクトップとモバイル両方）
             const navLinks = document.querySelectorAll('.nav-link');
             
             navLinks.forEach(link => {
@@ -1976,6 +2712,17 @@
                     const href = this.getAttribute('href');
                     const page = this.getAttribute('data-page');
                     const transition = document.getElementById('pageTransition');
+                    const mobileMenu = document.getElementById('mobileMenu');
+                    
+                    // モバイルメニューを閉じる
+                    const navMenu = document.getElementById('navMenu');
+                    const hamburgerMenu = document.getElementById('hamburgerMenu');
+                    if (navMenu) {
+                        navMenu.classList.remove('active');
+                    }
+                    if (hamburgerMenu) {
+                        hamburgerMenu.classList.remove('active');
+                    }
                     
                     // 即座にヘッダーの状態を更新
                     updateHeaderForNavigation(href);
@@ -2007,7 +2754,9 @@
                     }, 300);
                 });
             });
-        });
+            
+            console.log('✅ Navigation initialized');
+        }
 
         // ヘッダーの状態を更新する関数
         function updateHeaderState() {
@@ -2072,40 +2821,204 @@
 
         // メモリーのエクスポート
         function exportMemories() {
+            // エクスポート形式の選択ダイアログを表示
+            showExportModal();
+        }
+
+        // エクスポートモーダルを表示
+        function showExportModal() {
+            const modalHTML = `
+                <div class="modal-overlay" id="exportModal" style="display: flex;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 class="modal-title">
+                                <i class="fas fa-download"></i>
+                                メモリーをエクスポート
+                            </h2>
+                            <button class="modal-close" onclick="closeExportModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="export-options">
+                                <div class="export-option" onclick="exportAsJSON()">
+                                    <div class="option-icon">
+                                        <i class="fas fa-file-code"></i>
+                                    </div>
+                                    <div class="option-content">
+                                        <h3>JSON形式</h3>
+                                        <p>標準的なJSON形式でエクスポート（推奨）</p>
+                                        <small>他のアプリケーションでも使用可能</small>
+                                    </div>
+                                </div>
+                                <div class="export-option" onclick="exportAsEncrypted()">
+                                    <div class="option-icon">
+                                        <i class="fas fa-lock"></i>
+                                    </div>
+                                    <div class="option-content">
+                                        <h3>暗号化形式</h3>
+                                        <p>パスワードで暗号化してエクスポート</p>
+                                        <small>セキュリティ重視の場合</small>
+                                    </div>
+                                </div>
+                                <div class="export-option" onclick="exportAsCSV()">
+                                    <div class="option-icon">
+                                        <i class="fas fa-table"></i>
+                                    </div>
+                                    <div class="option-content">
+                                        <h3>CSV形式</h3>
+                                        <p>表計算ソフトで開けるCSV形式</p>
+                                        <small>Excel、Googleスプレッドシートなど</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="modal-btn secondary" onclick="closeExportModal()">
+                                <i class="fas fa-times"></i>
+                                キャンセル
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // モーダルを追加
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        // エクスポートモーダルを閉じる
+        function closeExportModal() {
+            const modal = document.getElementById('exportModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // JSON形式でエクスポート
+        function exportAsJSON() {
             try {
-                const user = window.userManager.getCurrentUser();
+                const user = window.userManager && window.userManager.getCurrentUser();
+                const exportData = {
+                    appName: 'RAGme',
+                    version: '1.0',
+                    exportDate: new Date().toISOString(),
+                    exportBy: user ? user.username : 'anonymous',
+                    totalMemories: memories.length,
+                    memories: memories.map(memory => ({
+                        id: memory.id,
+                        type: memory.type,
+                        content: memory.content,
+                        timestamp: memory.timestamp,
+                        size: memory.size,
+                        lastModified: memory.lastModified || memory.timestamp
+                    })),
+                    statistics: {
+                        textInputCount: memories.filter(m => m.type === 'text-input').length,
+                        voiceTranscriptionCount: memories.filter(m => m.type === 'voice-transcription').length,
+                        totalCharacters: memories.reduce((sum, m) => sum + (m.content?.length || 0), 0)
+                    }
+                };
+
+                const jsonString = JSON.stringify(exportData, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                downloadFile(blob, `ragme_memories_${formatDateForFilename()}.json`);
+
+                closeExportModal();
+                showToast(`📁 ${memories.length}件のメモリーをJSON形式でエクスポートしました`, 'success');
+            } catch (error) {
+                console.error('❌ JSON export error:', error);
+                showToast('JSON エクスポート中にエラーが発生しました', 'error');
+            }
+        }
+
+        // 暗号化形式でエクスポート
+        function exportAsEncrypted() {
+            try {
+                const user = window.userManager && window.userManager.getCurrentUser();
                 if (!user || !user.password) {
-                    showToast('⚠️ セキュリティのため、ログインが必要です', 'warning');
+                    showToast('⚠️ 暗号化には有効なユーザーログインが必要です', 'warning');
+                    return;
+                }
+
+                if (typeof CryptoJS === 'undefined') {
+                    showToast('❌ 暗号化ライブラリが読み込まれていません', 'error');
                     return;
                 }
 
                 const exportData = {
-                    memories: memories,
-                    exportDate: new Date().toISOString(),
+                    appName: 'RAGme',
                     version: '1.0',
-                    userId: user.id, // ユーザー識別子を追加
-                    exportId: generateId() // エクスポート識別子を追加
+                    exportDate: new Date().toISOString(),
+                    exportBy: user.username,
+                    encrypted: true,
+                    memories: memories
                 };
 
-                // データの暗号化
-                const encryptedData = encryptData(exportData, user.password);
-                
-                // 暗号化されたデータをファイルとして保存
+                const encryptedData = CryptoJS.AES.encrypt(JSON.stringify(exportData), user.password).toString();
                 const blob = new Blob([encryptedData], { type: 'application/ragme-encrypted' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `ragme_memories_${new Date().toISOString().slice(0,10)}.ragme`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
+                downloadFile(blob, `ragme_memories_encrypted_${formatDateForFilename()}.ragme`);
 
+                closeExportModal();
                 showToast('🔒 暗号化されたメモリーをエクスポートしました', 'success');
             } catch (error) {
-                console.error('❌ Export error:', error);
-                showToast('エクスポート中にエラーが発生しました', 'error');
+                console.error('❌ Encrypted export error:', error);
+                showToast('暗号化エクスポート中にエラーが発生しました', 'error');
             }
+        }
+
+        // CSV形式でエクスポート
+        function exportAsCSV() {
+            try {
+                const headers = ['ID', 'タイプ', '内容', '作成日時', '文字数', '最終更新'];
+                const csvData = [headers];
+
+                memories.forEach(memory => {
+                    const row = [
+                        memory.id,
+                        memory.type === 'text-input' ? 'テキスト入力' : '音声入力',
+                        `"${(memory.content || '').replace(/"/g, '""')}"`, // CSVエスケープ
+                        formatDate(memory.timestamp),
+                        (memory.content || '').length,
+                        formatDate(memory.lastModified || memory.timestamp)
+                    ];
+                    csvData.push(row);
+                });
+
+                const csvString = csvData.map(row => row.join(',')).join('\n');
+                const blob = new Blob(['\uFEFF' + csvString], { type: 'text/csv;charset=utf-8' }); // BOM付きUTF-8
+                downloadFile(blob, `ragme_memories_${formatDateForFilename()}.csv`);
+
+                closeExportModal();
+                showToast(`📊 ${memories.length}件のメモリーをCSV形式でエクスポートしました`, 'success');
+            } catch (error) {
+                console.error('❌ CSV export error:', error);
+                showToast('CSV エクスポート中にエラーが発生しました', 'error');
+            }
+        }
+
+        // ファイルダウンロード用のヘルパー関数
+        function downloadFile(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ファイル名用の日付フォーマット
+        function formatDateForFilename() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            return `${year}${month}${day}_${hours}${minutes}`;
         }
 
         // メモリー保存時の暗号化
@@ -2226,9 +3139,12 @@
             }
         }
 
-        // 暗号化関連の関数
+        // 暗号化関連のヘルパー関数（暗号化エクスポートで使用）
         function encryptData(data, password) {
             try {
+                if (typeof CryptoJS === 'undefined') {
+                    throw new Error('暗号化ライブラリが読み込まれていません');
+                }
                 const encryptedData = CryptoJS.AES.encrypt(JSON.stringify(data), password).toString();
                 return encryptedData;
             } catch (error) {
@@ -2239,6 +3155,9 @@
 
         function decryptData(encryptedData, password) {
             try {
+                if (typeof CryptoJS === 'undefined') {
+                    throw new Error('暗号化ライブラリが読み込まれていません');
+                }
                 const decrypted = CryptoJS.AES.decrypt(encryptedData, password);
                 return JSON.parse(decrypted.toString(CryptoJS.enc.Utf8));
             } catch (error) {
@@ -2275,6 +3194,48 @@
                 console.error('❌ Error updating storage info:', error);
                 showToast('❌ ストレージ情報の更新に失敗しました', 'error');
             }
+        }
+
+        // メイン初期化
+        function initializePage() {
+            console.log('🚀 Initializing memory page...');
+            
+            try {
+                initializeAuth();
+                setupEventListeners();
+                loadMemories();
+                setupResponsiveDisplay();
+                
+                console.log('✅ Memory page initialization complete');
+            } catch (error) {
+                console.error('❌ Page initialization error:', error);
+                showToast('ページの初期化中にエラーが発生しました', 'error');
+            }
+        }
+
+        // レスポンシブ表示の設定
+        function setupResponsiveDisplay() {
+            const checkDisplay = () => {
+                const isMobile = window.innerWidth <= 375;
+                const memoryTable = document.querySelector('.memory-table');
+                const mobileMemoryList = document.getElementById('mobileMemoryList');
+                
+                if (memoryTable && mobileMemoryList) {
+                    if (isMobile) {
+                        memoryTable.style.display = 'none';
+                        mobileMemoryList.style.display = 'block';
+                    } else {
+                        memoryTable.style.display = 'table';
+                        mobileMemoryList.style.display = 'none';
+                    }
+                }
+            };
+            
+            // 初期チェック
+            checkDisplay();
+            
+            // リサイズ時の再チェック
+            window.addEventListener('resize', debounce(checkDisplay, 100));
         }
     </script>
 </body>
