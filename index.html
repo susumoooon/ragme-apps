@@ -5,6 +5,9 @@
     <meta name="RAGme" content="width=device-width, initial-scale=1.0">
     <title>RAGme - 行動・意識の蓄積OS</title>
     
+    <!-- テーマ管理システム -->
+    <script src="theme-manager.js"></script>
+    
     <!-- データ削除スクリプト -->
     <script src="clear-data.js"></script>
     
@@ -14,13 +17,13 @@
     <!-- ユーザー管理システム - 最初に読み込み -->
     <script src="user-manager.js"></script>
     
-    <!-- ナビゲーション管理 -->
-    <script src="navigation.js"></script>
-    
-    <!-- 音声認識システム -->
+    <!-- 音声認識システム（ナビゲーションより前に読み込み） -->
     <script src="js/voice/recognition.js"></script>
     <script src="js/voice/recorder.js"></script>
     <script src="js/voice/transcription.js"></script>
+    
+    <!-- ナビゲーション管理 -->
+    <script src="navigation.js"></script>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -35,6 +38,7 @@
             --danger: #ef4444;
             --success: #10b981;
             
+            /* ダークモード */
             --bg-primary: #0f0f23;
             --bg-secondary: #1a1a2e;
             --bg-tertiary: #16213e;
@@ -58,10 +62,39 @@
             --glow-success: 0 0 20px rgba(16, 185, 129, 0.3);
         }
 
+        /* ライトモード */
+        :root.light-mode {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: rgba(0, 0, 0, 0.05);
+            --bg-glass: rgba(0, 0, 0, 0.1);
+            
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            
+            --border: rgba(0, 0, 0, 0.1);
+            --border-focus: rgba(32, 178, 170, 0.5);
+            
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.2);
+            --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+            
+            --glow-primary: 0 0 20px rgba(32, 178, 170, 0.2);
+            --glow-accent: 0 0 20px rgba(6, 214, 160, 0.2);
+            --glow-success: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
 
         body {
@@ -112,6 +145,11 @@
             max-width: 400px;
             width: 100%;
             text-align: center;
+        }
+
+        :root.light-mode .login-card {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
         }
 
         .login-logo {
@@ -284,6 +322,11 @@
             text-decoration: none;
             transition: all 0.3s ease;
             font-weight: 500;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .nav-link:hover {
@@ -807,6 +850,145 @@
             border-color: var(--primary);
         }
 
+        /* Hamburger Menu Styles */
+        .hamburger-menu {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 0.5rem;
+            z-index: 1001;
+        }
+
+        .hamburger-line {
+            width: 25px;
+            height: 3px;
+            background: var(--primary);
+            margin: 3px 0;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+
+        .hamburger-menu.active .hamburger-line:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+
+        .hamburger-menu.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger-menu.active .hamburger-line:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        .mobile-nav-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-nav-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .mobile-nav-menu {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 280px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            z-index: 1000;
+            transition: right 0.3s ease;
+            padding: 2rem 1rem;
+            border-left: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+        }
+
+        .mobile-nav-menu.active {
+            right: 0;
+        }
+
+        .mobile-nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mobile-nav-brand {
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .mobile-nav-close {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .mobile-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .mobile-nav-link:hover {
+            background: rgba(32, 178, 170, 0.1);
+            color: var(--primary);
+        }
+
+        .mobile-nav-link.active {
+            background: rgba(32, 178, 170, 0.2);
+            color: var(--primary);
+        }
+
+        .mobile-nav-footer {
+            position: absolute;
+            bottom: 2rem;
+            left: 1rem;
+            right: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .mobile-user-info {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .mobile-username {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .nav-container {
@@ -821,50 +1003,25 @@
                 display: none;
             }
             
-            .main-content {
-                padding: 1rem;
+            .user-info {
+                display: none;
             }
             
-            .content-header h1 {
-                font-size: 2rem;
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            
-            .tab-container {
-                margin: 0;
-            }
-            
-            .tab-nav {
-                flex-direction: row;
-            }
-            
-            .tab-button {
-                padding: 1rem;
-                font-size: 1rem;
-            }
-            
-            .tab-content {
-                padding: 1rem;
-            }
-            
-            .voice-button {
-                width: 100px;
-                height: 100px;
-                font-size: 1.5rem;
-            }
-            
-            .controls {
-                flex-direction: column;
-            }
-            
-            .btn {
-                width: 100%;
-                justify-content: center;
+            .hamburger-menu {
+                display: flex;
             }
 
-            .transcription-actions {
+            .content-header h1 {
+                font-size: 2rem;
+            }
+
+            .tab-nav {
                 flex-direction: column;
+            }
+
+            .tab-button {
+                flex: none;
+                padding: 1rem;
             }
         }
 
@@ -874,13 +1031,309 @@
                 min-width: 40px;
                 justify-content: center;
             }
+
+            .content-header h1 {
+                font-size: 1.8rem;
+            }
+
+            .tab-content {
+                padding: 1.5rem;
+            }
+        }
+
+        /* スマホ対応 (375px以下) - AI分析スタイル準拠 */
+        @media (max-width: 375px) {
+            .nav-menu {
+                display: none;
+                position: fixed;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: var(--bg-secondary);
+                border-top: 1px solid var(--border);
+                z-index: 999;
+                flex-direction: column;
+                padding: 1rem 0;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
             
+            .nav-menu.active {
+                display: flex;
+            }
+            
+            .nav-menu .nav-link {
+                width: 100%;
+                padding: 1rem 2rem;
+                justify-content: flex-start;
+                border-bottom: 1px solid var(--border);
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: normal;
+            }
+            
+            .nav-menu .nav-link span {
+                display: inline;
+                word-break: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            .hamburger-menu {
+                display: flex;
+                flex-direction: column;
+                cursor: pointer;
+                padding: 0.5rem;
+                gap: 3px;
+            }
+            
+            .hamburger-line {
+                width: 25px;
+                height: 3px;
+                background: var(--primary);
+                transition: all 0.3s ease;
+                border-radius: 2px;
+                margin: 0;
+            }
+            
+            .hamburger-menu.active .hamburger-line:nth-child(1) {
+                transform: rotate(45deg) translate(6px, 6px);
+            }
+            
+            .hamburger-menu.active .hamburger-line:nth-child(2) {
+                opacity: 0;
+            }
+            
+            .hamburger-menu.active .hamburger-line:nth-child(3) {
+                transform: rotate(-45deg) translate(6px, -6px);
+            }
+
+            /* スマホ画面での文字折り返し強化 */
+            .btn {
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: normal;
+                text-align: center;
+            }
+
+            .message {
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: pre-wrap;
+                max-width: 90%;
+            }
+
+            .transcription-text,
+            .preview-content,
+            .text-input-area,
+            .transcription-edit {
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: pre-wrap;
+            }
+
+            /* 長い英数字の強制改行 */
+            .nav-link,
+            .toggle-link,
+            .form-group input,
+            .login-btn {
+                word-break: break-word;
+                overflow-wrap: break-word;
+                text-overflow: ellipsis;
+            }
+
+            /* テーブルセルの文字折り返し */
+            td,
+            th {
+                word-break: break-word;
+                overflow-wrap: break-word;
+                max-width: 150px;
+            }
+        }
+
+        /* Mobile Responsive (375px and below) */
+        @media (max-width: 375px) {
+            /* Navigation - Show only hamburger menu */
+            .nav-menu {
+                display: none;
+            }
+
+            .hamburger-menu {
+                display: flex;
+            }
+
+            /* Font Size Adjustments */
             .content-header h1 {
                 font-size: 1.5rem;
             }
-            
-            .tab-button span {
-                display: none;
+
+            .content-header p {
+                font-size: 0.9rem;
+            }
+
+            .tab-button {
+                font-size: 0.9rem;
+                padding: 0.75rem 1rem;
+            }
+
+            .btn {
+                font-size: 0.9rem;
+                padding: 0.6rem 1rem;
+            }
+
+            /* Single Column Layout */
+            .tab-nav {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .preview-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .transcription-actions {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            /* Voice Controls */
+            .voice-button {
+                width: 100px;
+                height: 100px;
+                font-size: 1.5rem;
+            }
+
+            .voice-status {
+                font-size: 1rem;
+            }
+
+            /* Input Areas */
+            .text-input-area {
+                min-height: 250px;
+                font-size: 0.9rem;
+                padding: 1rem;
+            }
+
+            .transcription-edit {
+                min-height: 100px;
+                font-size: 0.9rem;
+                padding: 0.75rem;
+            }
+
+            /* Content Spacing */
+            .main-content {
+                padding: 1rem;
+            }
+
+            .tab-content {
+                padding: 1rem;
+                min-height: 400px;
+            }
+
+            .tab-container {
+                border-radius: 15px;
+            }
+
+            /* Form Elements */
+            .form-group input {
+                font-size: 16px; /* Prevent zoom on iOS */
+                padding: 10px 12px;
+            }
+
+            .login-card {
+                padding: 2rem;
+                margin: 1rem;
+            }
+
+            .login-title {
+                font-size: 1.5rem;
+            }
+
+            .login-subtitle {
+                font-size: 0.9rem;
+            }
+
+            /* Chat and Message Areas */
+            .chat-container {
+                height: 300px;
+            }
+
+            .message {
+                max-width: 90%;
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            /* Transcription Display */
+            .transcription-display {
+                margin: 1rem 0;
+                padding: 1rem;
+            }
+
+            .transcription-title {
+                font-size: 1rem;
+            }
+
+            .transcription-text {
+                font-size: 0.9rem;
+            }
+
+            /* Toast Notifications */
+            .toast {
+                right: 10px;
+                left: 10px;
+                min-width: auto;
+                font-size: 0.9rem;
+            }
+
+            /* Navbar Adjustments */
+            .navbar {
+                padding: 0.75rem 0;
+            }
+
+            .nav-brand {
+                font-size: 1.25rem;
+            }
+
+            .nav-brand i {
+                font-size: 1.5rem;
+            }
+
+            /* Login Container */
+            .login-container {
+                padding: 1rem;
+            }
+
+            /* Preview Content */
+            .preview-content {
+                font-size: 0.9rem;
+                padding: 1rem;
+                min-height: 150px;
+            }
+
+            .text-input-header h3 {
+                font-size: 1.1rem;
+            }
+
+            .text-input-header p {
+                font-size: 0.9rem;
+            }
+
+            .preview-header h3 {
+                font-size: 1.1rem;
             }
         }
 
@@ -1072,8 +1525,9 @@
 <!-- </body> タグの直前に追加 -->
 
 <script>
-    // Service Worker登録
-    if ('serviceWorker' in navigator) {
+    // Service Worker登録（HTTPSまたはlocalhost環境でのみ）
+    if ('serviceWorker' in navigator && 
+        (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
           .then((registration) => {
@@ -1221,7 +1675,7 @@
                     <i class="fas fa-robot"></i>
                     <span>RAGme</span>
                 </div>
-                <div class="nav-menu">
+                <div class="nav-menu" id="navMenu">
                     <a href="index.html" class="nav-link active" data-page="home">
                         <i class="fas fa-home"></i>
                         <span>ホーム</span>
@@ -1244,6 +1698,13 @@
                             <i class="fas fa-sign-out-alt"></i> ログアウト
                         </button>
                     </div>
+                </div>
+                
+                <!-- Hamburger Menu Button -->
+                <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleMobileMenu()">
+                    <div class="hamburger-line"></div>
+                    <div class="hamburger-line"></div>
+                    <div class="hamburger-line"></div>
                 </div>
             </div>
         </nav>
@@ -1363,6 +1824,47 @@
         </main>
     </div>
 
+    <!-- Mobile Navigation Overlay -->
+    <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+    
+    <!-- Mobile Navigation Menu -->
+    <div class="mobile-nav-menu" id="mobileNavMenu">
+        <div class="mobile-nav-header">
+            <div class="mobile-nav-brand">RAGme</div>
+            <button class="mobile-nav-close" id="mobileNavClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mobile-nav-links">
+            <a href="index.html" class="mobile-nav-link active" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>ホーム</span>
+            </a>
+            <a href="memory.html" class="mobile-nav-link" data-page="memory">
+                <i class="fas fa-brain"></i>
+                <span>メモリー</span>
+            </a>
+            <a href="analysis.html" class="mobile-nav-link" data-page="analysis">
+                <i class="fas fa-chart-line"></i>
+                <span>AI分析</span>
+            </a>
+            <a href="settings.html" class="mobile-nav-link" data-page="settings">
+                <i class="fas fa-cog"></i>
+                <span>設定</span>
+            </a>
+        </div>
+        
+        <div class="mobile-nav-footer">
+            <div class="mobile-user-info">
+                <span class="mobile-username" id="mobileUsernameDisplay"></span>
+                <button class="logout-btn" onclick="logoutUser()">
+                    <i class="fas fa-sign-out-alt"></i> ログアウト
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         'use strict';
         
@@ -1375,31 +1877,52 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Initializing voice functionality...');
             
-            // UserManagerの初期化を待つ
-            if (window.userManager) {
-                console.log('✅ UserManager found');
-                initializeVoice();
-            } else {
-                console.error('❌ UserManager not found');
+            // モジュールの読み込みを待つ（最大3秒）
+            let retryCount = 0;
+            const maxRetries = 30;
+            
+            function checkModulesAndInitialize() {
+                retryCount++;
+                
+                if (window.userManager && window.RAGmeRecognition && window.RAGmeTranscription && window.RAGmeRecorder) {
+                    console.log('✅ All modules found');
+                    initializeVoice();
+                } else if (retryCount < maxRetries) {
+                    console.log(`⏳ Waiting for modules... (${retryCount}/${maxRetries})`);
+                    setTimeout(checkModulesAndInitialize, 100);
+                } else {
+                    console.error('❌ Module initialization timeout');
+                    showToast('❌ 音声機能の初期化に失敗しました', 'error');
+                }
             }
+            
+            checkModulesAndInitialize();
         });
 
         function initializeVoice() {
             const voiceButton = document.getElementById('voiceButton');
             if (!voiceButton) {
                 console.error('❌ Voice button not found');
-                        return;
-                    }
+                return;
+            }
+
+            // 音声認識モジュールの確認
+            if (!window.RAGmeRecognition) {
+                console.error('❌ RAGmeRecognition module not found');
+                voiceButton.disabled = true;
+                showToast('❌ 音声認識モジュールが読み込まれていません', 'error');
+                return;
+            }
 
             // 音声認識の初期化
-            if (typeof RAGmeRecognition !== 'undefined' && RAGmeRecognition.initializeSpeechRecognition()) {
+            if (window.RAGmeRecognition.initializeSpeechRecognition()) {
                 // トランスクリプションアクションの初期化
-                if (typeof RAGmeTranscription !== 'undefined') {
-                    RAGmeTranscription.initializeTranscriptionActions();
+                if (window.RAGmeTranscription) {
+                    window.RAGmeTranscription.initializeTranscriptionActions();
                 } else {
                     console.error('❌ Transcription module not found');
-                        return;
-                    }
+                    return;
+                }
 
                 // ボタンイベントの設定
                 voiceButton.addEventListener('click', toggleRecording);
@@ -1420,15 +1943,19 @@
                 return;
         }
         
-            if (RAGmeRecorder.isRecording()) {
-                RAGmeRecorder.stopRecording();
-                } else {
-                RAGmeRecorder.startRecording();
+            if (window.RAGmeRecorder && window.RAGmeRecorder.isRecording()) {
+                window.RAGmeRecorder.stopRecording();
+                } else if (window.RAGmeRecorder) {
+                window.RAGmeRecorder.startRecording();
+            } else {
+                console.error('❌ RAGmeRecorder not found');
+                showToast('❌ 録音機能が利用できません', 'error');
             }
         }
 
         // ===== 🎤 TRANSCRIPTION ACTIONS =====
-        function confirmTranscription() {
+        // グローバル関数として定義
+        window.confirmTranscription = function() {
             console.log('✅ Confirming transcription...');
             
             try {
@@ -1437,8 +1964,8 @@
                 
                 if (editArea && editArea.classList.contains('show')) {
                     textToSave = editArea.value.trim();
-                } else if (typeof RAGmeRecognition !== 'undefined') {
-                    textToSave = RAGmeRecognition.getFinalTranscript().trim();
+                } else if (window.RAGmeRecognition) {
+                    textToSave = window.RAGmeRecognition.getFinalTranscript().trim();
                 }
                 
                 if (!textToSave) {
@@ -1447,7 +1974,13 @@
                 }
                 
                 // StorageManagerを使用して保存
-                StorageManager.saveVoiceInput(textToSave);
+                if (window.StorageManager) {
+                    window.StorageManager.saveVoiceInput(textToSave);
+                } else {
+                    console.error('❌ StorageManager not found');
+                    showToast('❌ 保存機能が利用できません', 'error');
+                    return;
+                }
                 
                 // UIのリセット
                 resetTranscriptionUI();
@@ -1458,9 +1991,9 @@
                 console.error('❌ Save error:', error);
                 showToast('❌ 保存に失敗しました', 'error');
             }
-        }
+        };
         
-        function editTranscription() {
+        window.editTranscription = function() {
             console.log('✏️ Editing transcription...');
             
             const editArea = document.getElementById('transcriptionEdit');
@@ -1483,13 +2016,13 @@
             editArea.focus();
             
             showToast('✏️ テキストを編集できます', 'info');
-        }
+        };
         
-        function deleteTranscription() {
+        window.deleteTranscription = function() {
             console.log('🗑️ Deleting transcription...');
                 resetTranscriptionUI();
                 showToast('🗑️ 音声認識結果を削除しました', 'info');
-        }
+        };
         
         function resetTranscriptionUI() {
             const transcriptionDisplay = document.getElementById('transcriptionDisplay');
@@ -1507,8 +2040,8 @@
                 editArea.value = '';
             }
 
-            if (typeof RAGmeRecognition !== 'undefined') {
-                RAGmeRecognition.resetRecognitionState();
+            if (window.RAGmeRecognition) {
+                window.RAGmeRecognition.resetRecognitionState();
             }
         }
         
@@ -1825,6 +2358,9 @@
                     link.classList.remove('active');
                 }
             });
+            
+            // モバイルナビゲーションも更新
+            updateMobileNavigationState();
         }
 
         // ページ読み込み完了時の処理
@@ -1845,15 +2381,94 @@
                 const username = user ? user.username : sessionStorage.getItem('username');
                 if (username) {
                     const usernameDisplay = document.getElementById('usernameDisplay');
+                    const mobileUsernameDisplay = document.getElementById('mobileUsernameDisplay');
                     if (usernameDisplay) {
                         usernameDisplay.textContent = username;
+                    }
+                    if (mobileUsernameDisplay) {
+                        mobileUsernameDisplay.textContent = username;
                     }
                 }
 
                 // ナビゲーションの状態を更新
                 updateNavigationState();
+                
+                // ハンバーガーメニューの初期化
+                initializeHamburgerMenu();
             }
         });
+
+        // メニュー外クリックで閉じる
+        function initializeHamburgerMenu() {
+            document.addEventListener('click', function(e) {
+                const navMenu = document.getElementById('navMenu');
+                const hamburgerMenu = document.getElementById('hamburgerMenu');
+                
+                if (!hamburgerMenu.contains(e.target) && !navMenu.contains(e.target)) {
+                    navMenu.classList.remove('active');
+                    hamburgerMenu.classList.remove('active');
+                }
+            });
+
+            // ナビゲーションリンククリック時にメニューを閉じる
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    const navMenu = document.getElementById('navMenu');
+                    const hamburgerMenu = document.getElementById('hamburgerMenu');
+                    navMenu.classList.remove('active');
+                    hamburgerMenu.classList.remove('active');
+                });
+            });
+
+            console.log('✅ ハンバーガーメニューが初期化されました');
+        }
+
+        function toggleMobileMenu() {
+            const navMenu = document.getElementById('navMenu');
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            
+            navMenu.classList.toggle('active');
+            hamburgerMenu.classList.toggle('active');
+        }
+
+        function openMobileMenu() {
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            const mobileNavMenu = document.getElementById('mobileNavMenu');
+            const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+
+            hamburgerMenu.classList.add('active');
+            mobileNavMenu.classList.add('active');
+            mobileNavOverlay.classList.add('active');
+            
+            // スクロールを無効化
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileMenu() {
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            const mobileNavMenu = document.getElementById('mobileNavMenu');
+            const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+
+            hamburgerMenu.classList.remove('active');
+            mobileNavMenu.classList.remove('active');
+            mobileNavOverlay.classList.remove('active');
+            
+            // スクロールを有効化
+            document.body.style.overflow = '';
+        }
+
+        // モバイルナビゲーションの状態を更新する関数
+        function updateMobileNavigationState() {
+            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link');
+            mobileNavLinks.forEach(link => {
+                const page = link.getAttribute('data-page');
+                if (isCurrentPage(page)) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
 
         // ログアウト処理を改善
         function logoutUser() {
@@ -1948,7 +2563,13 @@
                     
                     try {
                         // StorageManagerを使用して保存
-                        StorageManager.saveTextInput(text);
+                        if (window.StorageManager) {
+                            window.StorageManager.saveTextInput(text);
+                        } else {
+                            console.error('❌ StorageManager not found');
+                            showToast('❌ 保存機能が利用できません', 'error');
+                            return;
+                        }
 
                         // UIをリセット
                         textInput.value = '';
