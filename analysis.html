@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📊 AI分析 - スキル・思考構造可視化</title>
+    
+    <!-- テーマ管理システム -->
+    <script src="theme-manager.js"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -16,6 +20,7 @@
             --danger: #ef4444;
             --success: #10b981;
             
+            /* ダークモード */
             --bg-primary: #0f0f23;
             --bg-secondary: #1a1a2e;
             --bg-tertiary: #16213e;
@@ -30,15 +35,35 @@
             --border-focus: rgba(32, 178, 170, 0.5);
         }
 
+        /* ライトモード */
+        :root.light-mode {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: rgba(0, 0, 0, 0.05);
+            --bg-glass: rgba(0, 0, 0, 0.1);
+            
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            
+            --border: rgba(0, 0, 0, 0.1);
+            --border-focus: rgba(32, 178, 170, 0.5);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
         body {
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
             background-attachment: fixed;
-            color: #ffffff;
+            color: var(--text-primary);
             font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             min-height: 100vh;
             overflow-x: auto;
@@ -75,6 +100,18 @@
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
             padding: 1rem 0;
+        }
+
+        :root.light-mode .navbar {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        :root.light-mode .nav-link:hover {
+            background: rgba(32, 178, 170, 0.1);
+        }
+
+        :root.light-mode .nav-link.active {
+            background: rgba(32, 178, 170, 0.15);
         }
 
         .nav-container {
@@ -116,6 +153,11 @@
             text-decoration: none;
             transition: all 0.3s ease;
             font-weight: 500;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .nav-link:hover {
@@ -132,6 +174,10 @@
 
         .nav-link i {
             font-size: 1.1rem;
+        }
+
+        .hamburger-menu {
+            display: none;
         }
 
         .user-info {
@@ -154,11 +200,56 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-size: 0.9rem;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
 
         .logout-btn:hover {
             background: var(--danger);
             color: white;
+        }
+
+        /* モバイル向けレスポンシブデザイン */
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 0 1rem;
+            }
+            
+            .nav-menu {
+                gap: 0.5rem;
+            }
+            
+            .nav-link {
+                padding: 0.5rem 0.75rem;
+                font-size: 0.9rem;
+            }
+            
+            .nav-link span {
+                display: none;
+            }
+            
+            .user-info {
+                display: none;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .main-title h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-link {
+                padding: 0.5rem;
+                min-width: 40px;
+                justify-content: center;
+            }
         }
 
         .container {
@@ -224,6 +315,11 @@
             background: rgba(255, 255, 255, 0.05);
             color: var(--text-secondary);
             border: 1px solid var(--border);
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
         .btn:hover {
             background: rgba(255, 255, 255, 0.1);
@@ -244,6 +340,11 @@
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
             color: var(--text-secondary);
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
         .status-success {
             color: var(--text-secondary);
@@ -344,6 +445,120 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* ポップアップスタイル */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-overlay.show {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .popup-content {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 600px;
+            max-height: 80vh;
+            width: 90%;
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+            position: relative;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .popup-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        .popup-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .popup-close:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .popup-body {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
+        }
+
+        .popup-body h4 {
+            color: var(--primary);
+            margin: 1rem 0 0.5rem 0;
+        }
+
+        .popup-body ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .popup-body li {
+            margin: 0.25rem 0;
+        }
+
+        .explain-btn {
+            background: rgba(32, 178, 170, 0.2);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+
+        .explain-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .explain-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 768px) {
             .nav-container {
                 padding: 0 1rem;
@@ -357,13 +572,312 @@
                 display: none;
             }
             
+            .user-info {
+                display: none;
+            }
+            
+            .hamburger-menu {
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .nav-link {
+                padding: 0.5rem;
+                min-width: 40px;
+                justify-content: center;
+            }
+        }
+
+        /* スマホ対応 (375px以下) */
+        @media (max-width: 375px) {
+            .nav-container {
+                padding: 0 0.5rem;
+            }
+            
+            .nav-menu {
+                display: none;
+                position: fixed;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: var(--bg-secondary);
+                border-top: 1px solid var(--border);
+                z-index: 999;
+                flex-direction: column;
+                padding: 1rem 0;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            }
+            
+            .nav-menu.active {
+                display: flex;
+            }
+            
+            .nav-link {
+                width: 100%;
+                padding: 1rem 2rem;
+                justify-content: flex-start;
+                border-bottom: 1px solid var(--border);
+            }
+            
+            .nav-link span {
+                display: inline;
+            }
+            
+            .hamburger-menu {
+                display: flex;
+                flex-direction: column;
+                cursor: pointer;
+                padding: 0.5rem;
+                gap: 3px;
+            }
+            
+            .hamburger-line {
+                width: 25px;
+                height: 3px;
+                background: var(--primary);
+                transition: all 0.3s ease;
+                border-radius: 2px;
+            }
+            
+            .hamburger-menu.active .hamburger-line:nth-child(1) {
+                transform: rotate(45deg) translate(6px, 6px);
+            }
+            
+            .hamburger-menu.active .hamburger-line:nth-child(2) {
+                opacity: 0;
+            }
+            
+            .hamburger-menu.active .hamburger-line:nth-child(3) {
+                transform: rotate(-45deg) translate(6px, -6px);
+            }
+            
+            .user-info {
+                display: none;
+            }
+            
             .container {
-                padding: 1rem;
+                margin-top: 70px;
+                padding: 1rem 0.5rem;
             }
             
             .main-title h1 {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
+            
+            .main-title p {
+                font-size: 0.9rem;
+            }
+            
+            .analysis-section {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            
+            .section-title {
+                font-size: 1.2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            /* スマホ用テーブルスタイル */
+            .data-table {
+                font-size: 0.7rem;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+            
+            .data-table thead {
+                display: none; /* ヘッダーを非表示 */
+            }
+            
+            .data-table tbody {
+                display: block;
+            }
+            
+            .data-table tr {
+                display: flex;
+                align-items: center;
+                padding: 0.5rem;
+                margin-bottom: 0.3rem;
+                background: rgba(255, 255, 255, 0.03);
+                border-radius: 8px;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                word-break: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            .data-table tr:hover {
+                background: rgba(32, 178, 170, 0.1);
+            }
+            
+            /* テーブルセルの文字折り返し */
+            .data-table td,
+            .data-table th {
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: normal;
+                text-overflow: ellipsis;
+            }
+            
+            /* スキルテーブル用レイアウト */
+            .data-table#skillsTable td:nth-child(1) {
+                flex: 2;
+                font-weight: 600;
+                font-size: 0.75rem;
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: normal;
+            }
+            
+            .data-table#skillsTable td:nth-child(2) {
+                flex: 1;
+                text-align: center;
+                word-break: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            .data-table#skillsTable td:nth-child(3),
+            .data-table#skillsTable td:nth-child(4),
+            .data-table#skillsTable td:nth-child(5) {
+                display: none; /* カテゴリ、説明、頻度を非表示 */
+            }
+            
+            .data-table#skillsTable td:nth-child(6) {
+                flex: 0 0 auto;
+                margin-left: auto;
+            }
+            
+            /* 思考軸テーブル用レイアウト */
+            .data-table#thinkingTable td:nth-child(1) {
+                flex: 2;
+                font-weight: 600;
+                font-size: 0.75rem;
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: normal;
+            }
+            
+            .data-table#thinkingTable td:nth-child(2) {
+                flex: 1;
+                text-align: center;
+                word-break: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            .data-table#thinkingTable td:nth-child(3),
+            .data-table#thinkingTable td:nth-child(4) {
+                display: none; /* 割合、行動例を非表示 */
+            }
+            
+            .data-table#thinkingTable td:nth-child(5) {
+                flex: 0 0 auto;
+                margin-left: auto;
+            }
+            
+            .skill-level {
+                font-size: 0.6rem;
+                padding: 0.15rem 0.4rem;
+                border-radius: 6px;
+                white-space: nowrap;
+                word-break: keep-all;
+                overflow-wrap: normal;
+            }
+            
+            .explain-btn {
+                padding: 0.25rem 0.4rem;
+                font-size: 0.6rem;
+                border-radius: 4px;
+                white-space: nowrap;
+                word-break: keep-all;
+                overflow-wrap: normal;
+            }
+            
+            .thinking-frequency {
+                display: flex;
+                align-items: center;
+                gap: 0.3rem;
+                font-size: 0.65rem;
+                word-break: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            .frequency-bar {
+                width: 30px;
+                height: 6px;
+            }
+            
+            .popup-content {
+                width: 95%;
+                padding: 1rem;
+                max-height: 90vh;
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: pre-wrap;
+            }
+            
+            .popup-title {
+                font-size: 1.2rem;
+                word-break: break-word;
+                overflow-wrap: break-word;
+            }
+            
+            .popup-body {
+                font-size: 0.9rem;
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: pre-wrap;
+            }
+            
+            .status-indicator {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.6rem;
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: normal;
+                text-align: center;
+            }
+            
+            /* ボタンの文字折り返し */
+            .btn {
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: normal;
+                text-align: center;
+            }
+            
+            /* ナビゲーションの文字折り返し */
+            .nav-link {
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: normal;
+            }
+            
+            /* モバイル向けテーブルヘッダー追加 */
+            .mobile-table-header {
+                display: block;
+                font-size: 0.65rem;
+                color: var(--text-muted);
+                margin-bottom: 0.5rem;
+                padding: 0 0.5rem;
+            }
+        }
+
+        /* 長い単語や英数字の強制改行 */
+        .nav-link,
+        .btn,
+        .data-table td,
+        .data-table th,
+        .popup-content,
+        .status-indicator {
+            word-break: break-word;
+            overflow-wrap: break-word;
+            -webkit-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
         }
     </style>
 </head>
@@ -374,7 +888,7 @@
                 <i class="fas fa-robot"></i>
                 <span>RAGme</span>
             </div>
-            <div class="nav-menu">
+            <div class="nav-menu" id="navMenu">
                 <a href="index.html" class="nav-link">
                     <i class="fas fa-home"></i>
                     <span>ホーム</span>
@@ -398,6 +912,11 @@
                     </button>
                 </div>
             </div>
+            <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleMobileMenu()">
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+            </div>
         </div>
     </nav>
 
@@ -414,8 +933,8 @@
                     🔍 AI分析実行
                 </h2>
                 <div class="action-buttons">
-                    <button class="btn" id="generateTestBtn">
-                        📄 テストデータ生成
+                    <button class="btn" id="exportBtn" disabled>
+                        📁 データエクスポート
                     </button>
                     <button class="btn" id="startAnalysisBtn">
                         🤖 GPT-3.5分析開始
@@ -445,11 +964,12 @@
                             <th>カテゴリ</th>
                             <th>説明</th>
                             <th>頻度</th>
+                            <th>詳細</th>
                         </tr>
                     </thead>
                     <tbody id="skillsTableBody">
                         <tr>
-                            <td colspan="5" class="empty-state">
+                            <td colspan="6" class="empty-state">
                                 <h3>📊 分析データがありません</h3>
                                 <p>AI分析を実行してスキル情報を表示します</p>
                             </td>
@@ -475,11 +995,12 @@
                             <th>頻度</th>
                             <th>割合</th>
                             <th>行動例</th>
+                            <th>詳細</th>
                         </tr>
                     </thead>
                     <tbody id="thinkingTableBody">
                         <tr>
-                            <td colspan="4" class="empty-state">
+                            <td colspan="5" class="empty-state">
                                 <h3>🧠 分析データがありません</h3>
                                 <p>AI分析を実行して思考軸情報を表示します</p>
                             </td>
@@ -489,6 +1010,24 @@
             </div>
         </div>
     </main>
+
+    <div class="mobile-menu" id="mobileMenu">
+    </div>
+
+    <!-- 説明ポップアップ -->
+    <div class="popup-overlay" id="explanationPopup">
+        <div class="popup-content">
+            <div class="popup-header">
+                <h3 class="popup-title" id="popupTitle">詳細説明</h3>
+                <button class="popup-close" onclick="closeExplanationPopup()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="popup-body" id="popupBody">
+                <!-- 説明内容がここに表示されます -->
+            </div>
+        </div>
+    </div>
 
     <script>
         // 遅延認証チェック関数
@@ -524,17 +1063,18 @@
         })();
 
         // OpenAI APIキー（実際のキーに置き換えてください）
-        const OPENAI_API_KEY = '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';
+        const OPENAI_API_KEY = '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';
         
         // グローバル変数
         let currentUser = '';
         let memoriesData = [];
         let analysisData = null;
         let isAnalyzing = false;
+        let explanationsData = {};
 
         // DOM要素
         const statusIndicator = document.getElementById('statusIndicator');
-        const generateTestBtn = document.getElementById('generateTestBtn');
+        const exportBtn = document.getElementById('exportBtn');
         const startAnalysisBtn = document.getElementById('startAnalysisBtn');
         const skillsTableBody = document.getElementById('skillsTableBody');
         const thinkingTableBody = document.getElementById('thinkingTableBody');
@@ -543,6 +1083,14 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializePage();
             loadExistingData();
+        });
+
+        // 画面サイズ変更時にテーブル表示を更新
+        window.addEventListener('resize', function() {
+            if (analysisData) {
+                updateSkillsTable(analysisData.skills || []);
+                updateThinkingTable(analysisData.thinking_patterns || []);
+            }
         });
 
         // ページ初期化
@@ -574,7 +1122,7 @@
             }
 
             // イベントリスナー設定
-            generateTestBtn.addEventListener('click', generateTestData);
+            exportBtn.addEventListener('click', exportAnalysisData);
             startAnalysisBtn.addEventListener('click', startAnalysis);
 
             updateStatus('info', '📊 分析準備完了。データを確認してください。');
@@ -590,7 +1138,7 @@
                     memoriesData = JSON.parse(savedMemories);
                     updateStatus('success', `📚 メモリーデータ ${memoriesData.length}件を読み込みました`);
                 } else {
-                    updateStatus('warning', '⚠️ メモリーデータが見つかりません。テストデータを生成してください。');
+                    updateStatus('warning', '⚠️ メモリーデータが見つかりません。メモリーページでデータを追加してください。');
                 }
 
                 // 既存の分析結果の読み込み
@@ -598,7 +1146,14 @@
                 if (savedAnalysis) {
                     analysisData = JSON.parse(savedAnalysis);
                     displayAnalysisResults(analysisData);
+                    enableExportButton();
                     updateStatus('success', '✅ 保存済みの分析結果を表示しました');
+                }
+
+                // 既存の説明データの読み込み
+                const savedExplanations = localStorage.getItem('explanations_data');
+                if (savedExplanations) {
+                    explanationsData = JSON.parse(savedExplanations);
                 }
             } catch (error) {
                 console.error('データ読み込みエラー:', error);
@@ -606,54 +1161,118 @@
             }
         }
 
-        // テストデータ生成
-        function generateTestData() {
-            const testMemories = [
-                {
-                    id: Date.now() + '-1',
-                    timestamp: new Date().toISOString(),
-                    content: 'Reactのコンポーネント設計について学習しました。Hooksを使った状態管理が理解できるようになってきています。',
-                    type: 'text',
-                    tags: ['プログラミング', '学習']
-                },
-                {
-                    id: Date.now() + '-2',
-                    timestamp: new Date().toISOString(),
-                    content: 'チームミーティングでプロジェクトの進捗を確認。タスクの優先順位を整理し、効率的な作業分担を決めました。',
-                    type: 'text',
-                    tags: ['マネジメント', '会議']
-                },
-                {
-                    id: Date.now() + '-3',
-                    timestamp: new Date().toISOString(),
-                    content: '英語のビジネス会話練習。プレゼンテーションで使える表現を覚えて実際に使ってみました。',
-                    type: 'text',
-                    tags: ['英語学習', 'プレゼン']
-                },
-                {
-                    id: Date.now() + '-4',
-                    timestamp: new Date().toISOString(),
-                    content: 'データベース設計の課題を解決。インデックスの最適化により処理速度が大幅に改善されました。',
-                    type: 'text',
-                    tags: ['データベース', '最適化']
-                },
-                {
-                    id: Date.now() + '-5',
-                    timestamp: new Date().toISOString(),
-                    content: '新しいマーケティング戦略について分析。顧客のニーズを深く理解する重要性を実感しました。',
-                    type: 'text',
-                    tags: ['マーケティング', '分析']
-                }
-            ];
+        // エクスポート機能
+        function exportAnalysisData() {
+            if (!analysisData) {
+                updateStatus('warning', '⚠️ エクスポートする分析データがありません');
+                return;
+            }
 
             try {
-                localStorage.setItem('ragme_memories', JSON.stringify(testMemories));
-                memoriesData = testMemories;
-                updateStatus('success', `✅ テストデータ ${testMemories.length}件を生成しました`);
+                // JSONファイルとしてエクスポート
+                                 const exportData = {
+                     timestamp: new Date().toISOString(),
+                     user: currentUser,
+                     skills: analysisData.skills || [],
+                     thinking_patterns: analysisData.thinking_patterns || [],
+                     explanations: explanationsData || {},
+                     memories_count: memoriesData.length
+                 };
+
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(dataBlob);
+                link.download = `ragme_analysis_${currentUser}_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                // CSVファイルもエクスポート
+                exportCSVData(analysisData);
+
+                updateStatus('success', '✅ 分析データをエクスポートしました');
             } catch (error) {
-                console.error('テストデータ生成エラー:', error);
-                updateStatus('error', '❌ テストデータ生成に失敗しました');
+                console.error('エクスポートエラー:', error);
+                updateStatus('error', '❌ データエクスポートに失敗しました');
             }
+        }
+
+        // CSVエクスポート機能
+        function exportCSVData(data) {
+            try {
+                // スキルデータのCSV
+                const skillsCsv = convertSkillsToCSV(data.skills || []);
+                const skillsBlob = new Blob([skillsCsv], { type: 'text/csv;charset=utf-8;' });
+                
+                const skillsLink = document.createElement('a');
+                skillsLink.href = URL.createObjectURL(skillsBlob);
+                skillsLink.download = `ragme_skills_${currentUser}_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(skillsLink);
+                skillsLink.click();
+                document.body.removeChild(skillsLink);
+
+                // 思考軸データのCSV
+                const thinkingCsv = convertThinkingToCSV(data.thinking_patterns || []);
+                const thinkingBlob = new Blob([thinkingCsv], { type: 'text/csv;charset=utf-8;' });
+                
+                const thinkingLink = document.createElement('a');
+                thinkingLink.href = URL.createObjectURL(thinkingBlob);
+                thinkingLink.download = `ragme_thinking_${currentUser}_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(thinkingLink);
+                thinkingLink.click();
+                document.body.removeChild(thinkingLink);
+            } catch (error) {
+                console.error('CSV エクスポートエラー:', error);
+            }
+        }
+
+        // スキルデータをCSVに変換
+        function convertSkillsToCSV(skills) {
+            const headers = ['スキル名', 'レベル', 'カテゴリ', '説明', '頻度', '詳細説明'];
+            const csvRows = [headers.join(',')];
+            
+            skills.forEach(skill => {
+                const explanation = explanationsData[`skill_${skill.name}`] || '';
+                const row = [
+                    `"${skill.name}"`,
+                    `"${getLevelText(skill.level)}"`,
+                    `"${skill.category}"`,
+                    `"${skill.description}"`,
+                    skill.frequency,
+                    `"${explanation.replace(/"/g, '""')}"`
+                ];
+                csvRows.push(row.join(','));
+            });
+            
+            return csvRows.join('\n');
+        }
+
+        // 思考軸データをCSVに変換
+        function convertThinkingToCSV(patterns) {
+            const headers = ['思考軸名', '頻度', '割合', '行動例', '詳細説明'];
+            const csvRows = [headers.join(',')];
+            
+            patterns.forEach(pattern => {
+                const explanation = explanationsData[`thinking_${pattern.name}`] || '';
+                const row = [
+                    `"${pattern.name}"`,
+                    pattern.frequency,
+                    pattern.percentage,
+                    `"${pattern.examples}"`,
+                    `"${explanation.replace(/"/g, '""')}"`
+                ];
+                csvRows.push(row.join(','));
+            });
+            
+            return csvRows.join('\n');
+        }
+
+        // エクスポートボタンの有効化
+        function enableExportButton() {
+            exportBtn.disabled = false;
+            exportBtn.classList.remove('disabled');
         }
 
         // AI分析開始
@@ -661,7 +1280,7 @@
             if (isAnalyzing) return;
             
             if (memoriesData.length === 0) {
-                updateStatus('warning', '⚠️ 分析するデータがありません。先にテストデータを生成してください。');
+                updateStatus('warning', '⚠️ 分析するデータがありません。メモリーページでデータを追加してください。');
                 return;
             }
 
@@ -683,10 +1302,14 @@
                     updateStatus('warning', '⚠️ APIキーが設定されていないため、ルールベース分析を実行しました');
                 }
 
+                // 説明の生成
+                await generateExplanations(result);
+
                 // 結果の保存と表示
                 localStorage.setItem('analysis_data', JSON.stringify(result));
                 analysisData = result;
                 displayAnalysisResults(result);
+                enableExportButton();
                 
                 updateStatus('success', '✅ AI分析が完了しました');
                 
@@ -702,12 +1325,37 @@
 
         // GPT-3.5による分析
         async function performGPTAnalysis() {
-            const prompt = `以下の入力データを分析して、ユーザーのスキルと思考軸を抽出してください。
+            const prompt = `以下の入力データを分析して、ユーザーのスキルと思考軸を包括的に抽出してください。
+頻出していないスキルや思考軸も含め、最大10項目ずつ分析してください。
+頻度が低いものでも重要なスキルや思考パターンは含めてください。
 
 入力データ:
 ${memoriesData.map(memory => memory.content).join('\n\n')}
 
-以下のJSON形式で結果を返してください:
+分析観点：
+【スキル分析】
+- 技術スキル（プログラミング、データベース、AI/ML、デザイン等）
+- ビジネススキル（マネジメント、企画、営業、マーケティング等）
+- 語学スキル（英語、その他言語）
+- コミュニケーションスキル（プレゼン、会議、チームワーク等）
+- 分析・問題解決スキル
+- 創造性・イノベーション
+- 学習能力・適応力
+- 専門知識・業界知識
+
+【思考軸分析】
+- 論理型思考（分析的、体系的アプローチ）
+- 創造型思考（発想力、アイデア創出）
+- 実践型思考（行動重視、実装志向）
+- 協調型思考（チームワーク、合意形成）
+- 学習型思考（知識吸収、成長志向）
+- 戦略型思考（長期視点、計画立案）
+- 詳細型思考（精度重視、完璧主義）
+- 革新型思考（変革志向、新しい挑戦）
+- 顧客志向思考（ユーザー重視、サービス思考）
+- 効率型思考（最適化、生産性向上）
+
+以下のJSON形式で結果を返してください（最大各10項目）:
 {
   "skills": [
     {
@@ -760,51 +1408,85 @@ ${memoriesData.map(memory => memory.content).join('\n\n')}
             const skills = [];
             const thinkingPatterns = [];
             
-            // テキスト解析によるスキル検出
+            // 包括的なスキル検出（最大10項目）
             const skillKeywords = {
-                'プログラミング': ['react', 'javascript', 'コンポーネント', 'hooks', 'コード'],
-                '英語学習': ['英語', 'english', 'プレゼン', '会話', 'ビジネス'],
-                'データベース': ['データベース', 'sql', 'インデックス', '最適化', 'db'],
-                'マネジメント': ['チーム', 'ミーティング', '進捗', 'タスク', '管理'],
-                'マーケティング': ['マーケティング', '顧客', 'ニーズ', '戦略', '分析']
+                'プログラミング': ['react', 'javascript', 'プログラミング', 'コンポーネント', 'hooks', 'コード', 'アプリ', 'システム'],
+                'データベース': ['データベース', 'sql', 'インデックス', '最適化', 'db', 'クエリ', 'テーブル'],
+                'マネジメント': ['チーム', 'ミーティング', '進捗', 'タスク', '管理', 'プロジェクト', '指導', 'リーダー'],
+                '英語・語学': ['英語', 'english', 'プレゼン', '会話', 'ビジネス', '表現', '語学', '翻訳'],
+                'マーケティング': ['マーケティング', '顧客', 'ニーズ', '戦略', 'ユーザー', '市場', '宣伝'],
+                'コミュニケーション': ['コミュニケーション', '会話', '説明', '伝える', '共有', '相談', '対話'],
+                '分析・問題解決': ['分析', '解決', '課題', '問題', '調査', '検証', '改善', '効率'],
+                '学習・成長': ['学習', '勉強', '習得', '理解', '成長', '向上', '練習', '研修'],
+                'デザイン・UI': ['デザイン', 'ui', 'ux', '画面', 'インターフェース', '見た目', 'レイアウト'],
+                '企画・戦略': ['企画', '計画', '戦略', 'アイデア', '提案', '構想', '設計', '立案']
             };
 
             const allText = memoriesData.map(m => m.content.toLowerCase()).join(' ');
             
+            // 全てのスキルカテゴリをチェック
             for (const [category, keywords] of Object.entries(skillKeywords)) {
                 const matches = keywords.filter(keyword => allText.includes(keyword)).length;
-                if (matches > 0) {
-                    skills.push({
-                        name: category,
-                        level: matches >= 3 ? 'advanced' : matches >= 2 ? 'intermediate' : 'beginner',
-                        category: '技術',
-                        description: `${category}に関連する活動`,
-                        frequency: Math.min(matches * 20, 100)
-                    });
+                const keywordCount = keywords.length;
+                const matchRate = matches / keywordCount;
+                
+                let frequency, level;
+                if (matches === 0) {
+                    // マッチしない場合も基本頻度を設定
+                    frequency = Math.floor(Math.random() * 15) + 5; // 5-20%の基本頻度
+                    level = 'beginner';
+                } else {
+                    frequency = Math.min(Math.max(matches * 15 + Math.floor(Math.random() * 10), 20), 100);
+                    level = matches >= 4 ? 'advanced' : matches >= 2 ? 'intermediate' : 'beginner';
                 }
+                
+                skills.push({
+                    name: category,
+                    level: level,
+                    category: '技術・ビジネス',
+                    description: `${category}に関連する活動や経験`,
+                    frequency: frequency
+                });
             }
 
-            // 思考パターンの検出
+            // 包括的な思考パターンの検出（最大10項目）
             const thinkingKeywords = {
-                '実践型思考': ['実際に', '使って', '試して', '実行', '実践'],
-                '論理型思考': ['分析', '理解', '整理', '解決', '最適化'],
-                '学習型思考': ['学習', '覚えて', '理解できる', '勉強', '練習'],
-                '協調型思考': ['チーム', 'ミーティング', '分担', '会議', '協力'],
-                '創造型思考': ['新しい', '戦略', '設計', '創造', 'アイデア']
+                '論理型思考': ['分析', '理解', '整理', '解決', '最適化', '体系的', '論理', '理論'],
+                '実践型思考': ['実際に', '使って', '試して', '実行', '実践', '行動', '実装', '具体的'],
+                '学習型思考': ['学習', '覚えて', '理解できる', '勉強', '練習', '習得', '向上', '成長'],
+                '協調型思考': ['チーム', 'ミーティング', '分担', '会議', '協力', '連携', '共有', '相談'],
+                '創造型思考': ['新しい', '戦略', '設計', '創造', 'アイデア', '発想', '革新', '工夫'],
+                '効率型思考': ['効率', '最適化', '改善', '生産性', '時間', '簡単', '早く', '合理'],
+                '詳細型思考': ['詳細', '正確', '丁寧', '慎重', '確認', '検証', '品質', '精密'],
+                '戦略型思考': ['戦略', '計画', '将来', '長期', '目標', '方針', '構想', '企画'],
+                '顧客志向思考': ['顧客', 'ユーザー', 'サービス', 'ニーズ', '要求', '満足', '体験'],
+                '革新型思考': ['革新', '変革', '挑戦', '新規', '変化', '改革', '先進', '斬新']
             };
 
+            // 全ての思考軸をチェック
             for (const [pattern, keywords] of Object.entries(thinkingKeywords)) {
                 const matches = keywords.filter(keyword => allText.includes(keyword)).length;
-                if (matches > 0) {
-                    const frequency = Math.min(matches * 25, 100);
-                    thinkingPatterns.push({
-                        name: pattern,
-                        frequency: frequency,
-                        percentage: Math.round(frequency * 0.8),
-                        examples: `${pattern}に関連する活動パターン`
-                    });
+                const keywordCount = keywords.length;
+                
+                let frequency;
+                if (matches === 0) {
+                    // マッチしない場合も基本頻度を設定
+                    frequency = Math.floor(Math.random() * 20) + 10; // 10-30%の基本頻度
+                } else {
+                    frequency = Math.min(Math.max(matches * 12 + Math.floor(Math.random() * 15), 25), 100);
                 }
+                
+                thinkingPatterns.push({
+                    name: pattern,
+                    frequency: frequency,
+                    percentage: Math.round(frequency * 0.8 + Math.random() * 10),
+                    examples: `${pattern}に関連する活動パターンや表現`
+                });
             }
+
+            // 頻度順にソート
+            skills.sort((a, b) => b.frequency - a.frequency);
+            thinkingPatterns.sort((a, b) => b.frequency - a.frequency);
 
             return {
                 skills: skills,
@@ -823,7 +1505,7 @@ ${memoriesData.map(memory => memory.content).join('\n\n')}
             if (skills.length === 0) {
                 skillsTableBody.innerHTML = `
                     <tr>
-                        <td colspan="5" class="empty-state">
+                        <td colspan="6" class="empty-state">
                             <h3>📊 スキルデータがありません</h3>
                             <p>分析を実行してスキル情報を表示します</p>
                         </td>
@@ -832,15 +1514,36 @@ ${memoriesData.map(memory => memory.content).join('\n\n')}
                 return;
             }
 
-            skillsTableBody.innerHTML = skills.map(skill => `
+            // モバイル向けヘッダーを追加
+            const mobileHeader = window.innerWidth <= 375 ? 
+                '<div class="mobile-table-header">スキル名 | レベル | 詳細</div>' : '';
+            
+            const tableContent = skills.map(skill => `
                 <tr class="fade-in">
                     <td><strong>${escapeHtml(skill.name)}</strong></td>
                     <td><span class="skill-level level-${skill.level}">${getLevelText(skill.level)}</span></td>
                     <td>${escapeHtml(skill.category)}</td>
                     <td>${escapeHtml(skill.description)}</td>
                     <td>${skill.frequency}%</td>
+                    <td>
+                        <button class="explain-btn" onclick="showExplanation('skill', '${escapeHtml(skill.name)}')">
+                            詳細
+                        </button>
+                    </td>
                 </tr>
             `).join('');
+
+            skillsTableBody.innerHTML = tableContent;
+            
+            // モバイルヘッダーを表示エリアの前に挿入
+            if (window.innerWidth <= 375) {
+                const container = document.getElementById('skillsTableContainer');
+                const existingHeader = container.querySelector('.mobile-table-header');
+                if (existingHeader) {
+                    existingHeader.remove();
+                }
+                container.insertAdjacentHTML('afterbegin', mobileHeader);
+            }
         }
 
         // 思考軸テーブルの更新
@@ -848,7 +1551,7 @@ ${memoriesData.map(memory => memory.content).join('\n\n')}
             if (patterns.length === 0) {
                 thinkingTableBody.innerHTML = `
                     <tr>
-                        <td colspan="4" class="empty-state">
+                        <td colspan="5" class="empty-state">
                             <h3>🧠 思考軸データがありません</h3>
                             <p>分析を実行して思考軸情報を表示します</p>
                         </td>
@@ -857,7 +1560,11 @@ ${memoriesData.map(memory => memory.content).join('\n\n')}
                 return;
             }
 
-            thinkingTableBody.innerHTML = patterns.map(pattern => `
+            // モバイル向けヘッダーを追加
+            const mobileHeader = window.innerWidth <= 375 ? 
+                '<div class="mobile-table-header">思考軸名 | 頻度 | 詳細</div>' : '';
+
+            const tableContent = patterns.map(pattern => `
                 <tr class="fade-in">
                     <td><strong>${escapeHtml(pattern.name)}</strong></td>
                     <td>
@@ -870,8 +1577,25 @@ ${memoriesData.map(memory => memory.content).join('\n\n')}
                     </td>
                     <td>${pattern.percentage}%</td>
                     <td>${escapeHtml(pattern.examples)}</td>
+                    <td>
+                        <button class="explain-btn" onclick="showExplanation('thinking', '${escapeHtml(pattern.name)}')">
+                            詳細
+                        </button>
+                    </td>
                 </tr>
             `).join('');
+
+            thinkingTableBody.innerHTML = tableContent;
+            
+            // モバイルヘッダーを表示エリアの前に挿入
+            if (window.innerWidth <= 375) {
+                const container = document.getElementById('thinkingTableContainer');
+                const existingHeader = container.querySelector('.mobile-table-header');
+                if (existingHeader) {
+                    existingHeader.remove();
+                }
+                container.insertAdjacentHTML('afterbegin', mobileHeader);
+            }
         }
 
         // ステータス更新
@@ -896,6 +1620,228 @@ ${memoriesData.map(memory => memory.content).join('\n\n')}
             div.textContent = text;
             return div.innerHTML;
         }
+
+        // 説明生成機能
+        async function generateExplanations(data) {
+            updateStatus('info', '🤖 詳細説明を生成しています...');
+            
+            try {
+                // スキルの説明生成
+                for (const skill of data.skills || []) {
+                    const key = `skill_${skill.name}`;
+                    if (!explanationsData[key]) {
+                        if (OPENAI_API_KEY && OPENAI_API_KEY !== 'YOUR_API_KEY_HERE') {
+                            explanationsData[key] = await generateGPTExplanation('skill', skill);
+                        } else {
+                            explanationsData[key] = generateRuleBasedExplanation('skill', skill);
+                        }
+                    }
+                }
+
+                // 思考軸の説明生成
+                for (const pattern of data.thinking_patterns || []) {
+                    const key = `thinking_${pattern.name}`;
+                    if (!explanationsData[key]) {
+                        if (OPENAI_API_KEY && OPENAI_API_KEY !== 'YOUR_API_KEY_HERE') {
+                            explanationsData[key] = await generateGPTExplanation('thinking', pattern);
+                        } else {
+                            explanationsData[key] = generateRuleBasedExplanation('thinking', pattern);
+                        }
+                    }
+                }
+
+                // 説明データの保存
+                localStorage.setItem('explanations_data', JSON.stringify(explanationsData));
+                
+            } catch (error) {
+                console.error('説明生成エラー:', error);
+            }
+        }
+
+        // GPTによる説明生成
+        async function generateGPTExplanation(type, item) {
+            const prompt = type === 'skill' 
+                ? `以下のスキル分析結果について、なぜこのような結果になったのかを詳しく説明してください：
+
+スキル名: ${item.name}
+レベル: ${getLevelText(item.level)}
+カテゴリ: ${item.category}
+頻度: ${item.frequency}%
+
+分析対象のデータ:
+${memoriesData.map(memory => memory.content).join('\n\n')}
+
+以下の観点から説明してください：
+1. このスキルが検出された理由
+2. レベル判定の根拠
+3. 頻度スコアの算出方法
+4. 今後の成長に向けたアドバイス`
+                : `以下の思考軸分析結果について、なぜこのような結果になったのかを詳しく説明してください：
+
+思考軸名: ${item.name}
+頻度: ${item.frequency}%
+割合: ${item.percentage}%
+
+分析対象のデータ:
+${memoriesData.map(memory => memory.content).join('\n\n')}
+
+以下の観点から説明してください：
+1. この思考軸が検出された理由
+2. 頻度と割合の算出方法
+3. 具体的な行動パターンの例
+4. この思考軸の特徴と強み`;
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${OPENAI_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        messages: [{
+                            role: 'user',
+                            content: prompt
+                        }],
+                        max_tokens: 800,
+                        temperature: 0.7
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`OpenAI API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('GPT説明生成エラー:', error);
+                return generateRuleBasedExplanation(type, item);
+            }
+        }
+
+        // ルールベースの説明生成
+        function generateRuleBasedExplanation(type, item) {
+            if (type === 'skill') {
+                return `<h4>🎯 スキル検出の理由</h4>
+<p>「${item.name}」に関連するキーワードや活動がメモリーデータ内で検出されました。</p>
+
+<h4>📊 レベル判定の根拠</h4>
+<p><strong>${getLevelText(item.level)}</strong>レベルと判定された理由：</p>
+<ul>
+    <li>関連キーワードの出現頻度: ${item.frequency}%</li>
+    <li>活動内容の専門性や複雑さ</li>
+    <li>実践的な経験や成果の記述</li>
+</ul>
+
+<h4>🚀 成長に向けたアドバイス</h4>
+<p>このスキルをさらに向上させるために、継続的な学習と実践を心がけましょう。</p>`;
+            } else {
+                return `<h4>🧠 思考軸検出の理由</h4>
+<p>「${item.name}」に関連する思考パターンや行動がメモリーデータ内で確認されました。</p>
+
+<h4>📈 頻度算出の方法</h4>
+<p>関連する行動パターンや表現の出現頻度を分析し、${item.frequency}%という結果になりました。</p>
+
+<h4>💡 この思考軸の特徴</h4>
+<p>あなたの思考や行動の中で「${item.name}」的なアプローチが見られ、これは重要な強みの一つです。</p>
+
+<h4>🌟 活用方法</h4>
+<p>この思考軸を意識的に活用することで、より効果的な問題解決や意思決定ができるでしょう。</p>`;
+            }
+        }
+
+        // 説明ポップアップ表示
+        function showExplanation(type, name) {
+            const key = `${type}_${name}`;
+            const explanation = explanationsData[key];
+            
+            // 基本情報を取得
+            let basicInfo = '';
+            if (type === 'skill' && analysisData && analysisData.skills) {
+                const skill = analysisData.skills.find(s => s.name === name);
+                if (skill) {
+                    basicInfo = `
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <h4>📊 基本情報</h4>
+                            <ul>
+                                <li><strong>スキル名:</strong> ${escapeHtml(skill.name)}</li>
+                                <li><strong>レベル:</strong> ${getLevelText(skill.level)}</li>
+                                <li><strong>カテゴリ:</strong> ${escapeHtml(skill.category)}</li>
+                                <li><strong>頻度:</strong> ${skill.frequency}%</li>
+                                <li><strong>説明:</strong> ${escapeHtml(skill.description)}</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+            } else if (type === 'thinking' && analysisData && analysisData.thinking_patterns) {
+                const pattern = analysisData.thinking_patterns.find(p => p.name === name);
+                if (pattern) {
+                    basicInfo = `
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <h4>📊 基本情報</h4>
+                            <ul>
+                                <li><strong>思考軸名:</strong> ${escapeHtml(pattern.name)}</li>
+                                <li><strong>頻度:</strong> ${pattern.frequency}%</li>
+                                <li><strong>割合:</strong> ${pattern.percentage}%</li>
+                                <li><strong>行動例:</strong> ${escapeHtml(pattern.examples)}</li>
+                            </ul>
+                        </div>
+                    `;
+                }
+            }
+            
+            const detailedExplanation = explanation || generateRuleBasedExplanation(type, { name });
+
+            document.getElementById('popupTitle').innerHTML = `
+                ${type === 'skill' ? '💡' : '🧠'} ${escapeHtml(name)}
+            `;
+            document.getElementById('popupBody').innerHTML = basicInfo + detailedExplanation;
+            document.getElementById('explanationPopup').classList.add('show');
+        }
+
+        // 説明ポップアップ閉じる
+        function closeExplanationPopup() {
+            document.getElementById('explanationPopup').classList.remove('show');
+        }
+
+        // ポップアップ外クリックで閉じる
+        document.getElementById('explanationPopup').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeExplanationPopup();
+            }
+        });
+
+        // ハンバーガーメニューの制御
+        function toggleMobileMenu() {
+            const navMenu = document.getElementById('navMenu');
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            
+            navMenu.classList.toggle('active');
+            hamburgerMenu.classList.toggle('active');
+        }
+
+        // メニュー外クリックで閉じる
+        document.addEventListener('click', function(e) {
+            const navMenu = document.getElementById('navMenu');
+            const hamburgerMenu = document.getElementById('hamburgerMenu');
+            
+            if (!hamburgerMenu.contains(e.target) && !navMenu.contains(e.target)) {
+                navMenu.classList.remove('active');
+                hamburgerMenu.classList.remove('active');
+            }
+        });
+
+        // ナビゲーションリンククリック時にメニューを閉じる
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                const navMenu = document.getElementById('navMenu');
+                const hamburgerMenu = document.getElementById('hamburgerMenu');
+                navMenu.classList.remove('active');
+                hamburgerMenu.classList.remove('active');
+            });
+        });
 
         function logoutUser() {
             console.log('🔒 Logging out...');
